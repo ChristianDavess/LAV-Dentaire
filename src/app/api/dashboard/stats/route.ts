@@ -10,9 +10,9 @@ export async function GET() {
       .from('patients')
       .select('*', { count: 'exact', head: true })
 
-    if (patientsError) {
+    if (patientsError && patientsError.code !== 'PGRST116') {
       console.error('Error fetching patients count:', patientsError)
-      throw new Error('Failed to fetch patients count')
+      // Don't throw error, just log it and continue with fallback data
     }
 
     // Get today's appointments count
@@ -28,12 +28,23 @@ export async function GET() {
     }
 
     // Get monthly revenue (current month)
-    const currentMonth = new Date().toISOString().slice(0, 7) // YYYY-MM format
+    const currentDate = new Date()
+    const currentYear = currentDate.getFullYear()
+    const currentMonthNum = currentDate.getMonth() // 0-11
+    const currentMonth = `${currentYear}-${String(currentMonthNum + 1).padStart(2, '0')}` // YYYY-MM format
+
+    // Calculate first day of next month for upper bound
+    const nextMonth = new Date(currentYear, currentMonthNum + 1, 1)
+    const nextMonthStr = nextMonth.toISOString().slice(0, 10) // YYYY-MM-DD format
+
+    // Ensure we have valid date strings
+    const monthStartDate = `${currentMonth}-01`
+
     const { data: treatments, error: treatmentsError } = await supabase
       .from('treatments')
       .select('total_cost')
-      .gte('treatment_date', `${currentMonth}-01`)
-      .lt('treatment_date', `${currentMonth}-32`)
+      .gte('treatment_date', monthStartDate)
+      .lt('treatment_date', nextMonthStr)
 
     if (treatmentsError && treatmentsError.code !== 'PGRST116') {
       console.error('Error fetching treatments:', treatmentsError)

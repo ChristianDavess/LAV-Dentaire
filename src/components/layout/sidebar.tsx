@@ -92,7 +92,7 @@ export function Sidebar({ className }: SidebarProps) {
                 : "w-auto opacity-100"
             )}>
               <h2 className="text-lg font-semibold whitespace-nowrap">LAV Dentaire</h2>
-              <p className="text-sm text-muted-foreground whitespace-nowrap">Dental Clinic</p>
+              <p className="text-sm text-muted-foreground whitespace-nowrap">Dental Practice</p>
             </div>
           </div>
         </div>

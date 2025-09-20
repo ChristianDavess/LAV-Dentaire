@@ -1,6 +1,6 @@
 // Application constants
 export const APP_NAME = 'LAV Dentaire'
-export const APP_DESCRIPTION = 'Dental Clinic Management System'
+export const APP_DESCRIPTION = 'Dental Practice Management System'
 
 // API endpoints
 export const API_ENDPOINTS = {

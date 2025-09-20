@@ -6,8 +6,8 @@ import { Toaster } from '@/components/ui/toaster'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'LAV Dentaire - Dental Clinic Management System',
-  description: 'Comprehensive dental clinic management system for LAV Dentaire',
+  title: 'LAV Dentaire - Dental Practice Management System',
+  description: 'Comprehensive dental practice management system for LAV Dentaire',
 }
 
 export default function RootLayout({
