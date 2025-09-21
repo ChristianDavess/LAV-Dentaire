@@ -190,8 +190,8 @@ export const appointmentSchema = z.object({
 export const procedureSchema = z.object({
   name: z.string().min(1, 'Procedure name is required').max(200),
   description: z.string().optional(),
-  default_cost: z.number().min(0, 'Cost must be positive').optional(),
-  estimated_duration: z.number().min(1, 'Duration must be at least 1 minute').optional(),
+  default_cost: z.number().min(0, 'Cost must be positive').nullable().optional(),
+  estimated_duration: z.number().min(0, 'Duration cannot be negative').nullable().optional(),
   is_active: z.boolean().default(true),
 })
 
