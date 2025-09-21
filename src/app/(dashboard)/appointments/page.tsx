@@ -34,7 +34,7 @@ interface Appointment {
 export default function AppointmentsPage() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
-  const [activeTab, setActiveTab] = useState('calendar')
+  const [activeTab, setActiveTab] = useState('list')
   const [isNewAppointmentOpen, setIsNewAppointmentOpen] = useState(false)
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null)
   const [isCreating, setIsCreating] = useState(false)
@@ -212,13 +212,13 @@ export default function AppointmentsPage() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList>
-          <TabsTrigger value="calendar" className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            Calendar View
-          </TabsTrigger>
           <TabsTrigger value="list" className="flex items-center gap-2">
             <List className="h-4 w-4" />
             List View
+          </TabsTrigger>
+          <TabsTrigger value="calendar" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Calendar View
           </TabsTrigger>
         </TabsList>
 

@@ -220,17 +220,17 @@ export default function AppointmentList({
 
         {appointments.length > 0 && (
           <div className="flex flex-wrap gap-2 pt-2">
-            <Badge variant="outline" className="bg-blue-50">
+            <Badge variant="secondary">
               <Users className="h-3 w-3 mr-1" />
               {statusCounts.scheduled || 0} Scheduled
             </Badge>
-            <Badge variant="outline" className="bg-green-50">
+            <Badge variant="secondary">
               {statusCounts.completed || 0} Completed
             </Badge>
-            <Badge variant="outline" className="bg-red-50">
+            <Badge variant="outline">
               {statusCounts.cancelled || 0} Cancelled
             </Badge>
-            <Badge variant="outline" className="bg-gray-50">
+            <Badge variant="outline">
               {statusCounts['no-show'] || 0} No Show
             </Badge>
           </div>

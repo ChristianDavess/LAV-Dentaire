@@ -139,7 +139,10 @@ export default function AppointmentForm({ appointment, onSubmit, onCancel }: App
               <FormLabel className="text-base font-semibold">Patient</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value} disabled={loadingPatients}>
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger
+                    aria-describedby="patient-description"
+                    aria-label={loadingPatients ? "Loading patients" : "Select a patient"}
+                  >
                     <SelectValue placeholder={loadingPatients ? "Loading patients..." : "Select a patient"} />
                   </SelectTrigger>
                 </FormControl>
@@ -157,7 +160,7 @@ export default function AppointmentForm({ appointment, onSubmit, onCancel }: App
                   ))}
                 </SelectContent>
               </Select>
-              <FormDescription>
+              <FormDescription id="patient-description">
                 Select the patient for this appointment
               </FormDescription>
               <FormMessage />
@@ -178,17 +181,16 @@ export default function AppointmentForm({ appointment, onSubmit, onCancel }: App
                     <FormControl>
                       <Button
                         variant="outline"
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !selectedDate && "text-muted-foreground"
-                        )}
+                        data-empty={!selectedDate}
+                        className="data-[empty=true]:text-muted-foreground w-full pl-3 text-left font-normal"
+                        aria-describedby="date-description"
                       >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
                         {selectedDate ? (
                           format(selectedDate, "PPP")
                         ) : (
                           <span>Pick a date</span>
                         )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -204,7 +206,7 @@ export default function AppointmentForm({ appointment, onSubmit, onCancel }: App
                     />
                   </PopoverContent>
                 </Popover>
-                <FormDescription>
+                <FormDescription id="date-description">
                   Select the appointment date
                 </FormDescription>
                 <FormMessage />
@@ -221,7 +223,7 @@ export default function AppointmentForm({ appointment, onSubmit, onCancel }: App
                 <FormLabel className="text-base font-semibold">Duration</FormLabel>
                 <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value.toString()}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger aria-describedby="duration-description">
                       <SelectValue placeholder="Select duration" />
                     </SelectTrigger>
                   </FormControl>
@@ -236,7 +238,7 @@ export default function AppointmentForm({ appointment, onSubmit, onCancel }: App
                     ))}
                   </SelectContent>
                 </Select>
-                <FormDescription>
+                <FormDescription id="duration-description">
                   How long will this appointment take?
                 </FormDescription>
                 <FormMessage />
@@ -275,9 +277,13 @@ export default function AppointmentForm({ appointment, onSubmit, onCancel }: App
             <FormItem>
               <FormLabel className="text-base font-semibold">Reason for Appointment</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Regular cleaning, Consultation, Treatment..." {...field} />
+                <Input
+                  placeholder="e.g., Regular cleaning, Consultation, Treatment..."
+                  aria-describedby="reason-description"
+                  {...field}
+                />
               </FormControl>
-              <FormDescription>
+              <FormDescription id="reason-description">
                 Brief description of the appointment purpose
               </FormDescription>
               <FormMessage />
@@ -296,10 +302,11 @@ export default function AppointmentForm({ appointment, onSubmit, onCancel }: App
                 <Textarea
                   placeholder="Additional notes or special instructions..."
                   className="resize-none"
+                  aria-describedby="notes-description"
                   {...field}
                 />
               </FormControl>
-              <FormDescription>
+              <FormDescription id="notes-description">
                 Any additional information about this appointment
               </FormDescription>
               <FormMessage />
@@ -317,7 +324,7 @@ export default function AppointmentForm({ appointment, onSubmit, onCancel }: App
                 <FormLabel className="text-base font-semibold">Status</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger aria-describedby="status-description">
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                   </FormControl>
@@ -328,7 +335,7 @@ export default function AppointmentForm({ appointment, onSubmit, onCancel }: App
                     <SelectItem value="no-show">No Show</SelectItem>
                   </SelectContent>
                 </Select>
-                <FormDescription>
+                <FormDescription id="status-description">
                   Current appointment status
                 </FormDescription>
                 <FormMessage />
@@ -339,14 +346,30 @@ export default function AppointmentForm({ appointment, onSubmit, onCancel }: App
 
         {/* Form Actions */}
         <div className="flex items-center justify-end space-x-4 pt-4 border-t">
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={form.formState.isSubmitting}
+          >
             Cancel
           </Button>
-          <Button type="submit" disabled={form.formState.isSubmitting}>
+          <Button
+            type="submit"
+            disabled={form.formState.isSubmitting}
+            aria-label={
+              form.formState.isSubmitting
+                ? `${appointment ? 'Updating' : 'Creating'} appointment...`
+                : `${appointment ? 'Update' : 'Create'} appointment`
+            }
+          >
             {form.formState.isSubmitting && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
             )}
-            {appointment ? 'Update Appointment' : 'Create Appointment'}
+            {form.formState.isSubmitting
+              ? `${appointment ? 'Updating' : 'Creating'}...`
+              : `${appointment ? 'Update' : 'Create'} Appointment`
+            }
           </Button>
         </div>
       </form>
