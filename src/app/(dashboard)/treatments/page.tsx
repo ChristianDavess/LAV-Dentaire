@@ -9,54 +9,9 @@ import { Plus, Stethoscope, FileText, Loader2 } from 'lucide-react'
 import { ProcedureList } from '@/components/procedures'
 import { TreatmentForm, TreatmentList, TreatmentDetails, TreatmentInvoice } from '@/components/treatments'
 import { useToast } from '@/hooks/use-toast'
+import { TreatmentWithDetails } from '@/types/database'
 
-interface Patient {
-  id: string
-  patient_id: string
-  first_name: string
-  last_name: string
-  phone?: string
-  email?: string
-}
-
-interface Appointment {
-  id: string
-  appointment_date: string
-  appointment_time: string
-  reason?: string
-}
-
-interface Procedure {
-  id: string
-  name: string
-  description?: string
-}
-
-interface TreatmentProcedure {
-  id: string
-  procedure_id: string
-  quantity: number
-  cost_per_unit: number
-  total_cost: number
-  tooth_number?: string
-  notes?: string
-  procedures: Procedure
-}
-
-interface Treatment {
-  id: string
-  patient_id: string
-  appointment_id?: string
-  treatment_date: string
-  total_cost: number
-  payment_status: 'pending' | 'partial' | 'paid'
-  notes?: string
-  created_at: string
-  updated_at: string
-  patients: Patient
-  appointments?: Appointment
-  treatment_procedures: TreatmentProcedure[]
-}
+type Treatment = TreatmentWithDetails
 
 export default function TreatmentsPage() {
   const [activeTab, setActiveTab] = useState('treatments')
@@ -238,7 +193,7 @@ export default function TreatmentsPage() {
           <DialogHeader>
             <DialogTitle>Edit Treatment</DialogTitle>
             <DialogDescription>
-              Update treatment details for {editingTreatment?.patients.first_name} {editingTreatment?.patients.last_name}
+              Update treatment details for {editingTreatment?.patient?.first_name} {editingTreatment?.patient?.last_name}
             </DialogDescription>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto">

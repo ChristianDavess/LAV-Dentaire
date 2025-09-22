@@ -17,15 +17,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { CalendarIcon, User, AlertCircle, Loader2, Plus, Minus, CreditCard, Search, UserPlus, Phone, Clock } from 'lucide-react'
 import ProcedureSelector from './procedure-selector'
 import { format } from 'date-fns'
+import { TreatmentWithDetails, Patient, Appointment, Procedure, TreatmentProcedure } from '@/types/database'
 
 const treatmentSchema = z.object({
   patient_id: z.string().min(1, 'Please select a patient'),
   appointment_id: z.string().optional(),
   treatment_date: z.string().min(1, 'Please select a date'),
-  payment_status: z.enum(['pending', 'partial', 'paid'], {
-    required_error: 'Please select a payment status',
-    invalid_type_error: 'Please select a valid payment status'
-  }).default('pending'),
+  payment_status: z.enum(['pending', 'partial', 'paid'], 'Please select a payment status').default('pending'),
   notes: z.string().optional(),
   procedures: z.array(z.object({
     procedure_id: z.string(),
@@ -38,55 +36,10 @@ const treatmentSchema = z.object({
 
 type TreatmentFormData = z.infer<typeof treatmentSchema>
 
-interface Patient {
-  id: string
-  patient_id: string
-  first_name: string
-  last_name: string
-  phone?: string
-  email?: string
-}
-
-interface Appointment {
-  id: string
-  appointment_date: string
-  appointment_time: string
-  reason?: string
-}
-
-interface Procedure {
-  id: string
-  name: string
-  description?: string
-  default_cost?: number
-  estimated_duration?: number
-  is_active: boolean
-}
-
-interface TreatmentProcedure {
-  procedure_id: string
-  procedure?: Procedure
-  quantity: number
-  cost_per_unit: number
-  tooth_number?: string
-  notes?: string
-}
-
-interface Treatment {
-  id: string
-  patient_id: string
-  appointment_id?: string
-  treatment_date: string
-  total_cost: number
-  payment_status: 'pending' | 'partial' | 'paid'
-  notes?: string
-  patients: Patient
-  appointments?: Appointment
-  treatment_procedures: (TreatmentProcedure & { procedures: Procedure })[]
-}
+type Treatment = TreatmentWithDetails
 
 interface TreatmentFormProps {
-  treatment?: Treatment
+  treatment?: TreatmentWithDetails
   onSubmit: (data: TreatmentFormData) => void
   onCancel: () => void
 }
@@ -106,22 +59,25 @@ export default function TreatmentForm({ treatment, onSubmit, onCancel }: Treatme
   )
   const [selectedProcedures, setSelectedProcedures] = useState<TreatmentProcedure[]>(
     treatment?.treatment_procedures?.map(tp => ({
+      id: tp.id,
+      treatment_id: tp.treatment_id,
       procedure_id: tp.procedure_id,
-      procedure: tp.procedures,
       quantity: tp.quantity,
       cost_per_unit: tp.cost_per_unit,
+      total_cost: tp.total_cost,
       tooth_number: tp.tooth_number,
-      notes: tp.notes
+      notes: tp.notes,
+      procedure: tp.procedure
     })) || []
   )
 
-  const form = useForm<TreatmentFormData>({
+  const form = useForm({
     resolver: zodResolver(treatmentSchema),
     defaultValues: {
       patient_id: treatment?.patient_id || '',
       appointment_id: treatment?.appointment_id || '',
       treatment_date: treatment?.treatment_date || '',
-      payment_status: treatment?.payment_status || 'pending',
+      payment_status: (treatment?.payment_status as 'pending' | 'partial' | 'paid') || 'pending',
       notes: treatment?.notes || '',
       procedures: []
     }
@@ -263,7 +219,7 @@ export default function TreatmentForm({ treatment, onSubmit, onCancel }: Treatme
 
   const calculateTotalCost = () => {
     return selectedProcedures.reduce((total, proc) => {
-      return total + (proc.cost_per_unit * proc.quantity)
+      return total + ((proc.cost_per_unit ?? 0) * proc.quantity)
     }, 0)
   }
 
@@ -587,9 +543,9 @@ export default function TreatmentForm({ treatment, onSubmit, onCancel }: Treatme
           <Card>
             <CardContent className="p-4">
               <ProcedureSelector
-                procedures={procedures}
-                selectedProcedures={selectedProcedures}
-                onProceduresChange={handleProceduresChange}
+                procedures={procedures as any}
+                selectedProcedures={selectedProcedures as any}
+                onProceduresChange={handleProceduresChange as any}
               />
             </CardContent>
           </Card>

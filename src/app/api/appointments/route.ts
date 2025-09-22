@@ -1,15 +1,31 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { getCurrentUser } from '@/lib/auth-local'
+import { createApiHandler, createSuccessResponse, ApiErrorClass } from '@/lib/middleware'
 import { z } from 'zod'
+
+// Query parameters validation schema for appointment listing
+const getAppointmentsQuerySchema = z.object({
+  start_date: z.string().optional(),
+  end_date: z.string().optional(),
+  status: z.enum(['scheduled', 'completed', 'cancelled', 'no-show']).optional(),
+  patient_id: z.string().uuid().optional(),
+  limit: z.coerce.number().min(1).max(100).default(50),
+  offset: z.coerce.number().min(0).default(0)
+})
 
 const appointmentSchema = z.object({
   patient_id: z.string().uuid('Invalid patient ID'),
   appointment_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD format'),
   appointment_time: z.string().regex(/^\d{2}:\d{2}:\d{2}$/, 'Time must be HH:MM:SS format'),
   duration_minutes: z.number().min(15).max(240).default(60),
-  reason: z.string().max(500).optional(),
-  notes: z.string().max(1000).optional(),
+  reason: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? undefined : val),
+    z.string().max(500).optional()
+  ),
+  notes: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? undefined : val),
+    z.string().max(1000).optional()
+  ),
   status: z.enum(['scheduled', 'completed', 'cancelled', 'no-show']).default('scheduled')
 })
 
@@ -51,27 +67,12 @@ async function checkAppointmentConflict(
 }
 
 // GET /api/appointments - List appointments with filtering
-export async function GET(request: NextRequest) {
-  try {
-    const token = request.cookies.get('auth-token')?.value
-    if (!token) {
-      return NextResponse.json({ error: 'No authentication token' }, { status: 401 })
-    }
-
-    const user = await getCurrentUser(token)
-    if (!user) {
-      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
-    }
-
+export const GET = createApiHandler()
+  .requireAuth()
+  .validateQuery(getAppointmentsQuerySchema)
+  .handle(async (request: NextRequest, user: any, queryParams: z.infer<typeof getAppointmentsQuerySchema>) => {
     const supabase = await createClient()
-    const { searchParams } = new URL(request.url)
-
-    const startDate = searchParams.get('start_date')
-    const endDate = searchParams.get('end_date')
-    const status = searchParams.get('status')
-    const patientId = searchParams.get('patient_id')
-    const limit = parseInt(searchParams.get('limit') || '50')
-    const offset = parseInt(searchParams.get('offset') || '0')
+    const { start_date, end_date, status, patient_id, limit, offset } = queryParams
 
     let query = supabase
       .from('appointments')
@@ -85,147 +86,105 @@ export async function GET(request: NextRequest) {
           phone,
           email
         )
-      `)
+      `, { count: 'exact' })
       .order('appointment_date', { ascending: true })
       .order('appointment_time', { ascending: true })
       .range(offset, offset + limit - 1)
 
-    if (startDate) {
-      query = query.gte('appointment_date', startDate)
-    }
-    if (endDate) {
-      query = query.lte('appointment_date', endDate)
-    }
-    if (status) {
-      query = query.eq('status', status)
-    }
-    if (patientId) {
-      query = query.eq('patient_id', patientId)
-    }
+    // Apply filters
+    if (start_date) query = query.gte('appointment_date', start_date)
+    if (end_date) query = query.lte('appointment_date', end_date)
+    if (status) query = query.eq('status', status)
+    if (patient_id) query = query.eq('patient_id', patient_id)
 
     const { data: appointments, error, count } = await query
 
     if (error) {
       console.error('Error fetching appointments:', error)
-      return NextResponse.json(
-        { error: 'Failed to fetch appointments' },
-        { status: 500 }
-      )
+      throw new ApiErrorClass('Failed to fetch appointments', 500)
     }
 
-    return NextResponse.json({
+    return createSuccessResponse({
       appointments: appointments || [],
-      total: count || 0,
-      limit,
-      offset
+      pagination: {
+        limit,
+        offset,
+        total: count || 0,
+        hasMore: (count || 0) > offset + limit
+      }
     })
-  } catch (error) {
-    console.error('Error in GET /api/appointments:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
-}
+  })
 
 // POST /api/appointments - Create new appointment
-export async function POST(request: NextRequest) {
-  try {
-    const token = request.cookies.get('auth-token')?.value
-    if (!token) {
-      return NextResponse.json({ error: 'No authentication token' }, { status: 401 })
-    }
-
-    const user = await getCurrentUser(token)
-    if (!user) {
-      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
-    }
-
-    const body = await request.json()
-    const validatedData = appointmentSchema.parse(body)
-
+export const POST = createApiHandler()
+  .requireAuth()
+  .validateBody(appointmentSchema)
+  .handle(async (request: NextRequest, user: any, validatedData: z.infer<typeof appointmentSchema>) => {
     const supabase = await createClient()
 
-    // Check if patient exists
-    const { data: patient, error: patientError } = await supabase
-      .from('patients')
-      .select('id')
-      .eq('id', validatedData.patient_id)
-      .single()
+    try {
+      // Check if patient exists
+      const { data: patient, error: patientError } = await supabase
+        .from('patients')
+        .select('id')
+        .eq('id', validatedData.patient_id)
+        .single()
 
-    if (patientError || !patient) {
-      return NextResponse.json(
-        { error: 'Patient not found' },
-        { status: 404 }
+      if (patientError || !patient) {
+        throw new ApiErrorClass('Patient not found', 404)
+      }
+
+      // Check if appointment is in the past
+      const appointmentDateTime = new Date(`${validatedData.appointment_date}T${validatedData.appointment_time}`)
+      if (appointmentDateTime < new Date()) {
+        throw new ApiErrorClass('Cannot schedule appointments in the past', 400)
+      }
+
+      // Check for conflicts
+      const hasConflict = await checkAppointmentConflict(
+        supabase,
+        validatedData.patient_id,
+        validatedData.appointment_date,
+        validatedData.appointment_time,
+        validatedData.duration_minutes
       )
-    }
 
-    // Check if appointment is in the past
-    const appointmentDateTime = new Date(`${validatedData.appointment_date}T${validatedData.appointment_time}`)
-    if (appointmentDateTime < new Date()) {
-      return NextResponse.json(
-        { error: 'Cannot schedule appointments in the past' },
-        { status: 400 }
+      if (hasConflict) {
+        throw new ApiErrorClass('Appointment time conflicts with existing appointment', 409)
+      }
+
+      // Create appointment
+      const { data: appointment, error: createError } = await supabase
+        .from('appointments')
+        .insert([validatedData])
+        .select(`
+          *,
+          patients:patient_id (
+            id,
+            patient_id,
+            first_name,
+            last_name,
+            phone,
+            email
+          )
+        `)
+        .single()
+
+      if (createError) {
+        console.error('Error creating appointment:', createError)
+        throw new ApiErrorClass('Failed to create appointment', 500)
+      }
+
+      return createSuccessResponse(
+        { appointment },
+        'Appointment created successfully',
+        201
       )
+    } catch (error) {
+      if (error instanceof ApiErrorClass) {
+        throw error
+      }
+      console.error('Unexpected error creating appointment:', error)
+      throw new ApiErrorClass('Failed to create appointment', 500)
     }
-
-    // Check for conflicts
-    const hasConflict = await checkAppointmentConflict(
-      supabase,
-      validatedData.patient_id,
-      validatedData.appointment_date,
-      validatedData.appointment_time,
-      validatedData.duration_minutes
-    )
-
-    if (hasConflict) {
-      return NextResponse.json(
-        { error: 'Appointment time conflicts with existing appointment' },
-        { status: 409 }
-      )
-    }
-
-    // Create appointment
-    const { data: appointment, error: createError } = await supabase
-      .from('appointments')
-      .insert([validatedData])
-      .select(`
-        *,
-        patients:patient_id (
-          id,
-          patient_id,
-          first_name,
-          last_name,
-          phone,
-          email
-        )
-      `)
-      .single()
-
-    if (createError) {
-      console.error('Error creating appointment:', createError)
-      return NextResponse.json(
-        { error: 'Failed to create appointment' },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json({
-      appointment,
-      message: 'Appointment created successfully'
-    }, { status: 201 })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.issues },
-        { status: 400 }
-      )
-    }
-
-    console.error('Error in POST /api/appointments:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
-}
+  })

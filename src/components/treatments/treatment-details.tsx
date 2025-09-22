@@ -9,61 +9,14 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { User, Calendar, Clock, CreditCard, FileText, Receipt, Edit, Stethoscope, Phone, Mail } from 'lucide-react'
 import { format } from 'date-fns'
 import { formatCurrency } from '@/lib/utils/cost-calculations'
-
-interface Patient {
-  id: string
-  patient_id: string
-  first_name: string
-  last_name: string
-  phone?: string
-  email?: string
-}
-
-interface Appointment {
-  id: string
-  appointment_date: string
-  appointment_time: string
-  reason?: string
-}
-
-interface Procedure {
-  id: string
-  name: string
-  description?: string
-}
-
-interface TreatmentProcedure {
-  id: string
-  procedure_id: string
-  quantity: number
-  cost_per_unit: number
-  total_cost: number
-  tooth_number?: string
-  notes?: string
-  procedures: Procedure
-}
-
-interface Treatment {
-  id: string
-  patient_id: string
-  appointment_id?: string
-  treatment_date: string
-  total_cost: number
-  payment_status: 'pending' | 'partial' | 'paid'
-  notes?: string
-  created_at: string
-  updated_at: string
-  patients: Patient
-  appointments?: Appointment
-  treatment_procedures: TreatmentProcedure[]
-}
+import { TreatmentWithDetails } from '@/types/database'
 
 interface TreatmentDetailsProps {
-  treatment: Treatment | null
+  treatment: TreatmentWithDetails | null
   open: boolean
   onOpenChange: (open: boolean) => void
-  onEdit?: (treatment: Treatment) => void
-  onGenerateInvoice?: (treatment: Treatment) => void
+  onEdit?: (treatment: TreatmentWithDetails) => void
+  onGenerateInvoice?: (treatment: TreatmentWithDetails) => void
 }
 
 export default function TreatmentDetails({
@@ -75,7 +28,7 @@ export default function TreatmentDetails({
 }: TreatmentDetailsProps) {
   if (!treatment) return null
 
-  const getPaymentStatusBadge = (status: Treatment['payment_status']) => {
+  const getPaymentStatusBadge = (status: TreatmentWithDetails['payment_status']) => {
     switch (status) {
       case 'paid':
         return <Badge variant="secondary">Fully Paid</Badge>
@@ -88,7 +41,7 @@ export default function TreatmentDetails({
     }
   }
 
-  const getPaymentStatusColor = (status: Treatment['payment_status']) => {
+  const getPaymentStatusColor = (status: TreatmentWithDetails['payment_status']) => {
     switch (status) {
       case 'paid':
         return 'text-green-600'
@@ -110,7 +63,7 @@ export default function TreatmentDetails({
             Treatment Details
           </DialogTitle>
           <DialogDescription>
-            Complete treatment information for {treatment.patients.first_name} {treatment.patients.last_name}
+            Complete treatment information for {treatment.patient?.first_name} {treatment.patient?.last_name}
           </DialogDescription>
         </DialogHeader>
 
@@ -123,19 +76,19 @@ export default function TreatmentDetails({
                   <div className="flex items-center gap-2">
                     <User className="h-5 w-5 text-primary" />
                     <h3 className="text-lg font-semibold">
-                      {treatment.patients.first_name} {treatment.patients.last_name}
+                      {treatment.patient?.first_name} {treatment.patient?.last_name}
                     </h3>
-                    <Badge variant="outline">{treatment.patients.patient_id}</Badge>
+                    <Badge variant="outline">{treatment.patient?.patient_id}</Badge>
                   </div>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
                       <span>{format(new Date(treatment.treatment_date), 'PPPP')}</span>
                     </div>
-                    {treatment.appointments && (
+                    {treatment.appointment && (
                       <div className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
-                        <span>{treatment.appointments.appointment_time}</span>
+                        <span>{treatment.appointment.appointment_time}</span>
                       </div>
                     )}
                   </div>
@@ -162,27 +115,27 @@ export default function TreatmentDetails({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm font-medium text-muted-foreground">Full Name</div>
-                  <div>{treatment.patients.first_name} {treatment.patients.last_name}</div>
+                  <div>{treatment.patient?.first_name} {treatment.patient?.last_name}</div>
                 </div>
                 <div>
                   <div className="text-sm font-medium text-muted-foreground">Patient ID</div>
-                  <div>{treatment.patients.patient_id}</div>
+                  <div>{treatment.patient?.patient_id}</div>
                 </div>
-                {treatment.patients.phone && (
+                {treatment.patient?.phone && (
                   <div>
                     <div className="text-sm font-medium text-muted-foreground">Phone</div>
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4" />
-                      {treatment.patients.phone}
+                      {treatment.patient?.phone}
                     </div>
                   </div>
                 )}
-                {treatment.patients.email && (
+                {treatment.patient?.email && (
                   <div>
                     <div className="text-sm font-medium text-muted-foreground">Email</div>
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4" />
-                      {treatment.patients.email}
+                      {treatment.patient?.email}
                     </div>
                   </div>
                 )}
@@ -203,7 +156,7 @@ export default function TreatmentDetails({
                 </div>
                 <div>
                   <div className="text-sm font-medium text-muted-foreground">Procedures Count</div>
-                  <div>{treatment.treatment_procedures.length} procedures</div>
+                  <div>{treatment.treatment_procedures?.length || 0} procedures</div>
                 </div>
                 <div>
                   <div className="text-sm font-medium text-muted-foreground">Payment Status</div>
@@ -213,17 +166,17 @@ export default function TreatmentDetails({
                 </div>
               </div>
 
-              {treatment.appointments && (
+              {treatment.appointment && (
                 <div>
                   <div className="text-sm font-medium text-muted-foreground">Related Appointment</div>
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
-                    <span>{format(new Date(treatment.appointments.appointment_date), 'PPP')}</span>
-                    <span>at {treatment.appointments.appointment_time}</span>
-                    {treatment.appointments.reason && (
+                    <span>{format(new Date(treatment.appointment.appointment_date), 'PPP')}</span>
+                    <span>at {treatment.appointment.appointment_time}</span>
+                    {treatment.appointment.reason && (
                       <>
                         <span>•</span>
-                        <span className="text-muted-foreground">{treatment.appointments.reason}</span>
+                        <span className="text-muted-foreground">{treatment.appointment.reason}</span>
                       </>
                     )}
                   </div>
@@ -261,14 +214,14 @@ export default function TreatmentDetails({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {treatment.treatment_procedures.map((tp) => (
+                  {treatment.treatment_procedures?.map((tp) => (
                     <TableRow key={tp.id}>
                       <TableCell>
                         <div className="space-y-1">
-                          <div className="font-medium">{tp.procedures.name}</div>
-                          {tp.procedures.description && (
+                          <div className="font-medium">{tp.procedure?.name}</div>
+                          {tp.procedure?.description && (
                             <div className="text-xs text-muted-foreground">
-                              {tp.procedures.description}
+                              {tp.procedure?.description}
                             </div>
                           )}
                           {tp.notes && (
@@ -282,13 +235,13 @@ export default function TreatmentDetails({
                         {tp.quantity}
                       </TableCell>
                       <TableCell className="text-right">
-                        {formatCurrency(tp.cost_per_unit)}
+                        {formatCurrency(tp.cost_per_unit ?? 0)}
                       </TableCell>
                       <TableCell className="text-center">
                         {tp.tooth_number || '—'}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {formatCurrency(tp.total_cost)}
+                        {formatCurrency(tp.total_cost ?? 0)}
                       </TableCell>
                     </TableRow>
                   ))}

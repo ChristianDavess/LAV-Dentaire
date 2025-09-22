@@ -21,7 +21,7 @@ const updateTreatmentSchema = z.object({
 // GET /api/treatments/[id] - Get single treatment with procedures
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = request.cookies.get('auth-token')?.value
@@ -34,6 +34,7 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
     }
 
+    const { id } = await params
     const supabase = await createClient()
 
     // Get treatment with patient and appointment info
@@ -55,7 +56,7 @@ export async function GET(
           appointment_time
         )
       `)
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (error || !treatment) {
@@ -77,7 +78,7 @@ export async function GET(
           default_cost
         )
       `)
-      .eq('treatment_id', params.id)
+      .eq('treatment_id', id)
 
     return NextResponse.json({
       treatment: {
@@ -97,7 +98,7 @@ export async function GET(
 // PUT /api/treatments/[id] - Update treatment
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = request.cookies.get('auth-token')?.value
@@ -110,6 +111,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
     }
 
+    const { id } = await params
     const body = await request.json()
     const validatedData = updateTreatmentSchema.parse(body)
 
@@ -119,7 +121,7 @@ export async function PUT(
     const { data: existingTreatment, error: fetchError } = await supabase
       .from('treatments')
       .select('id, total_cost')
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (fetchError || !existingTreatment) {
@@ -137,7 +139,7 @@ export async function PUT(
       await supabase
         .from('treatment_procedures')
         .delete()
-        .eq('treatment_id', params.id)
+        .eq('treatment_id', id)
 
       // Verify all procedures exist and calculate total cost
       totalCost = 0
@@ -167,7 +169,7 @@ export async function PUT(
 
       // Create new treatment procedures
       const treatmentProcedures = validatedData.procedures.map(proc => ({
-        treatment_id: params.id,
+        treatment_id: id,
         procedure_id: proc.procedure_id,
         quantity: proc.quantity,
         cost_per_unit: proc.cost_per_unit,
@@ -202,7 +204,7 @@ export async function PUT(
     const { data: treatment, error: updateError } = await supabase
       .from('treatments')
       .update(updateData)
-      .eq('id', params.id)
+      .eq('id', id)
       .select(`
         *,
         patients:patient_id (
@@ -240,7 +242,7 @@ export async function PUT(
           description
         )
       `)
-      .eq('treatment_id', params.id)
+      .eq('treatment_id', id)
 
     return NextResponse.json({
       treatment: {
@@ -268,7 +270,7 @@ export async function PUT(
 // DELETE /api/treatments/[id] - Delete treatment
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = request.cookies.get('auth-token')?.value
@@ -281,13 +283,14 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
     }
 
+    const { id } = await params
     const supabase = await createClient()
 
     // Check if treatment exists
     const { data: existingTreatment, error: fetchError } = await supabase
       .from('treatments')
       .select('id')
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (fetchError || !existingTreatment) {
@@ -301,7 +304,7 @@ export async function DELETE(
     const { error: deleteProceduresError } = await supabase
       .from('treatment_procedures')
       .delete()
-      .eq('treatment_id', params.id)
+      .eq('treatment_id', id)
 
     if (deleteProceduresError) {
       console.error('Error deleting treatment procedures:', deleteProceduresError)
@@ -315,7 +318,7 @@ export async function DELETE(
     const { error: deleteError } = await supabase
       .from('treatments')
       .delete()
-      .eq('id', params.id)
+      .eq('id', id)
 
     if (deleteError) {
       console.error('Error deleting treatment:', deleteError)

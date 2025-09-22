@@ -7,31 +7,15 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Calendar, Clock, User, Phone, Mail, MoreVertical, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react'
 import AppointmentStatusBadge from './appointment-status-badge'
 import { format, parseISO } from 'date-fns'
+import { Patient, Appointment } from '@/types'
 
-interface Patient {
-  id: string
-  patient_id: string
-  first_name: string
-  last_name: string
-  phone?: string
-  email?: string
-}
-
-interface Appointment {
-  id: string
-  patient_id: string
-  appointment_date: string
-  appointment_time: string
-  duration_minutes: number
-  status: 'scheduled' | 'completed' | 'cancelled' | 'no-show'
-  reason?: string
-  notes?: string
+interface AppointmentWithPatient extends Appointment {
   patients: Patient
 }
 
 interface AppointmentCardProps {
-  appointment: Appointment
-  onEdit?: (appointment: Appointment) => void
+  appointment: AppointmentWithPatient
+  onEdit?: (appointment: AppointmentWithPatient) => void
   onStatusChange?: (appointmentId: string, status: Appointment['status']) => void
   onCancel?: (appointmentId: string) => void
   className?: string
@@ -72,7 +56,7 @@ export default function AppointmentCard({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <AppointmentStatusBadge status={appointment.status} />
+            <AppointmentStatusBadge status={appointment.status as 'scheduled' | 'completed' | 'cancelled' | 'no-show'} />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">

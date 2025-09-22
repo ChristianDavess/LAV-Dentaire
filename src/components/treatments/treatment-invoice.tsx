@@ -10,60 +10,15 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Printer, Download } from 'lucide-react'
 import { format } from 'date-fns'
 import { formatCurrency } from '@/lib/utils/cost-calculations'
-
-interface Patient {
-  id: string
-  patient_id: string
-  first_name: string
-  last_name: string
-  phone?: string
-  email?: string
-}
-
-interface Appointment {
-  id: string
-  appointment_date: string
-  appointment_time: string
-}
-
-interface Procedure {
-  id: string
-  name: string
-  description?: string
-}
-
-interface TreatmentProcedure {
-  id: string
-  procedure_id: string
-  quantity: number
-  cost_per_unit: number
-  total_cost: number
-  tooth_number?: string
-  notes?: string
-  procedures: Procedure
-}
-
-interface Treatment {
-  id: string
-  patient_id: string
-  appointment_id?: string
-  treatment_date: string
-  total_cost: number
-  payment_status: 'pending' | 'partial' | 'paid'
-  notes?: string
-  created_at: string
-  patients: Patient
-  appointments?: Appointment
-  treatment_procedures: TreatmentProcedure[]
-}
+import { TreatmentWithDetails } from '@/types/database'
 
 interface TreatmentInvoiceProps {
-  treatment: Treatment | null
+  treatment: TreatmentWithDetails | null
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-const InvoiceContent = forwardRef<HTMLDivElement, { treatment: Treatment }>(
+const InvoiceContent = forwardRef<HTMLDivElement, { treatment: TreatmentWithDetails }>(
   ({ treatment }, ref) => {
     const today = new Date()
     const invoiceNumber = `INV-${format(today, 'yyyyMMdd')}-${treatment.id.slice(-6).toUpperCase()}`
@@ -98,19 +53,19 @@ const InvoiceContent = forwardRef<HTMLDivElement, { treatment: Treatment }>(
           <h3 className="text-lg font-semibold mb-3">Bill To:</h3>
           <div className="bg-gray-50 p-4 rounded-lg">
             <div className="font-semibold text-lg">
-              {treatment.patients.first_name} {treatment.patients.last_name}
+              {treatment.patient?.first_name} {treatment.patient?.last_name}
             </div>
             <div className="text-sm text-gray-600 mt-1">
-              Patient ID: {treatment.patients.patient_id}
+              Patient ID: {treatment.patient?.patient_id}
             </div>
-            {treatment.patients.phone && (
+            {treatment.patient?.phone && (
               <div className="text-sm text-gray-600">
-                Phone: {treatment.patients.phone}
+                Phone: {treatment.patient?.phone}
               </div>
             )}
-            {treatment.patients.email && (
+            {treatment.patient?.email && (
               <div className="text-sm text-gray-600">
-                Email: {treatment.patients.email}
+                Email: {treatment.patient?.email}
               </div>
             )}
           </div>
@@ -130,14 +85,14 @@ const InvoiceContent = forwardRef<HTMLDivElement, { treatment: Treatment }>(
               </TableRow>
             </TableHeader>
             <TableBody>
-              {treatment.treatment_procedures.map((tp, index) => (
+              {treatment.treatment_procedures?.map((tp, index) => (
                 <TableRow key={tp.id}>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{tp.procedures.name}</div>
-                      {tp.procedures.description && (
+                      <div className="font-medium">{tp.procedure?.name}</div>
+                      {tp.procedure?.description && (
                         <div className="text-xs text-gray-500 mt-1">
-                          {tp.procedures.description}
+                          {tp.procedure?.description}
                         </div>
                       )}
                       {tp.notes && (
@@ -148,10 +103,10 @@ const InvoiceContent = forwardRef<HTMLDivElement, { treatment: Treatment }>(
                     </div>
                   </TableCell>
                   <TableCell className="text-center">{tp.quantity}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(tp.cost_per_unit)}</TableCell>
+                  <TableCell className="text-right">{formatCurrency(tp.cost_per_unit ?? 0)}</TableCell>
                   <TableCell className="text-center">{tp.tooth_number || '—'}</TableCell>
                   <TableCell className="text-right font-medium">
-                    {formatCurrency(tp.total_cost)}
+                    {formatCurrency(tp.total_cost ?? 0)}
                   </TableCell>
                 </TableRow>
               ))}
@@ -245,7 +200,7 @@ export default function TreatmentInvoice({
         <DialogHeader className="print:hidden">
           <DialogTitle>Treatment Invoice</DialogTitle>
           <DialogDescription>
-            Invoice for treatment provided to {treatment.patients.first_name} {treatment.patients.last_name}
+            Invoice for treatment provided to {treatment.patient?.first_name} {treatment.patient?.last_name}
           </DialogDescription>
           <div className="flex items-center gap-2 pt-2">
             <Button

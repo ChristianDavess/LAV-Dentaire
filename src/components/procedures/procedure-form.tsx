@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { procedureSchema, type ProcedureSchema } from '@/lib/validations'
+import { Procedure } from '@/types/database'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -12,16 +13,6 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, AlertCircle } from 'lucide-react'
 
-interface Procedure {
-  id: string
-  name: string
-  description?: string
-  default_cost?: number
-  estimated_duration?: number
-  is_active: boolean
-  created_at: string
-  updated_at: string
-}
 
 interface ProcedureFormProps {
   procedure?: Procedure
@@ -32,7 +23,7 @@ export default function ProcedureForm({ procedure, onSuccess }: ProcedureFormPro
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const form = useForm<ProcedureSchema>({
+  const form = useForm({
     resolver: zodResolver(procedureSchema),
     defaultValues: {
       name: procedure?.name || '',

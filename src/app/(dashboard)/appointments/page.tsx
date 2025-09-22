@@ -9,25 +9,9 @@ import { Plus, Calendar, List, Loader2 } from 'lucide-react'
 import { AppointmentCalendar, AppointmentList } from '@/components/appointments'
 import AppointmentForm from '@/components/forms/appointment-form'
 import { useToast } from '@/hooks/use-toast'
+import { Patient, Appointment } from '@/types'
 
-interface Patient {
-  id: string
-  patient_id: string
-  first_name: string
-  last_name: string
-  phone?: string
-  email?: string
-}
-
-interface Appointment {
-  id: string
-  patient_id: string
-  appointment_date: string
-  appointment_time: string
-  duration_minutes: number
-  status: 'scheduled' | 'completed' | 'cancelled' | 'no-show'
-  reason?: string
-  notes?: string
+interface AppointmentWithPatient extends Appointment {
   patients: Patient
 }
 
@@ -36,7 +20,7 @@ export default function AppointmentsPage() {
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const [activeTab, setActiveTab] = useState('list')
   const [isNewAppointmentOpen, setIsNewAppointmentOpen] = useState(false)
-  const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null)
+  const [editingAppointment, setEditingAppointment] = useState<AppointmentWithPatient | null>(null)
   const [isCreating, setIsCreating] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
@@ -171,7 +155,7 @@ export default function AppointmentsPage() {
     }
   }
 
-  const handleAppointmentClick = (appointment: Appointment) => {
+  const handleAppointmentClick = (appointment: AppointmentWithPatient) => {
     setEditingAppointment(appointment)
   }
 

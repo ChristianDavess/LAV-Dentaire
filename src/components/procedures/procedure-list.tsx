@@ -13,17 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Search, Filter, Plus, AlertCircle, RefreshCw, Edit, Trash2, Stethoscope, Clock, CreditCard, Eye, EyeOff } from 'lucide-react'
 import ProcedureForm from './procedure-form'
 import { useToast } from '@/hooks/use-toast'
-
-interface Procedure {
-  id: string
-  name: string
-  description?: string
-  default_cost?: number
-  estimated_duration?: number
-  is_active: boolean
-  created_at: string
-  updated_at: string
-}
+import { Procedure } from '@/types/database'
 
 interface ProcedureListProps {
   className?: string
@@ -331,11 +321,11 @@ export default function ProcedureList({ className }: ProcedureListProps) {
                 <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <CreditCard className="h-4 w-4" />
-                    <span>{formatCurrency(procedure.default_cost)}</span>
+                    <span>{formatCurrency(procedure.default_cost ?? undefined)}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="h-4 w-4" />
-                    <span>{formatDuration(procedure.estimated_duration)}</span>
+                    <span>{formatDuration(procedure.estimated_duration ?? undefined)}</span>
                   </div>
                 </div>
               </div>

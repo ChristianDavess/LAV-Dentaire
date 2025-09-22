@@ -17,6 +17,7 @@ import { CalendarIcon, Clock, User, AlertCircle, Loader2 } from 'lucide-react'
 import { TimeSlotPicker } from '@/components/appointments'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
+import { Patient, Appointment } from '@/types'
 
 const appointmentSchema = z.object({
   patient_id: z.string().min(1, 'Please select a patient'),
@@ -30,29 +31,12 @@ const appointmentSchema = z.object({
 
 type AppointmentFormData = z.infer<typeof appointmentSchema>
 
-interface Patient {
-  id: string
-  patient_id: string
-  first_name: string
-  last_name: string
-  phone?: string
-  email?: string
-}
-
-interface Appointment {
-  id: string
-  patient_id: string
-  appointment_date: string
-  appointment_time: string
-  duration_minutes: number
-  status: 'scheduled' | 'completed' | 'cancelled' | 'no-show'
-  reason?: string
-  notes?: string
+interface AppointmentWithPatient extends Appointment {
   patients: Patient
 }
 
 interface AppointmentFormProps {
-  appointment?: Appointment
+  appointment?: AppointmentWithPatient
   onSubmit: (data: AppointmentFormData) => void
   onCancel: () => void
 }
@@ -73,7 +57,7 @@ export default function AppointmentForm({ appointment, onSubmit, onCancel }: App
       duration_minutes: appointment?.duration_minutes || 60,
       reason: appointment?.reason || '',
       notes: appointment?.notes || '',
-      status: appointment?.status || 'scheduled'
+      status: (appointment?.status as 'scheduled' | 'completed' | 'cancelled' | 'no-show') || 'scheduled'
     }
   })
 

@@ -7,7 +7,7 @@ import { z } from 'zod'
 // GET /api/procedures/[id] - Get single procedure
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = request.cookies.get('auth-token')?.value
@@ -20,11 +20,12 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
     }
 
+    const { id } = await params
     const supabase = await createClient()
     const { data: procedure, error } = await supabase
       .from('procedures')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (error || !procedure) {
@@ -47,7 +48,7 @@ export async function GET(
 // PUT /api/procedures/[id] - Update procedure
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = request.cookies.get('auth-token')?.value
@@ -60,6 +61,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
     }
 
+    const { id } = await params
     const body = await request.json()
     const validatedData = procedureSchema.parse(body)
 
@@ -69,7 +71,7 @@ export async function PUT(
     const { data: existingProcedure, error: fetchError } = await supabase
       .from('procedures')
       .select('id')
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (fetchError || !existingProcedure) {
@@ -84,7 +86,7 @@ export async function PUT(
       .from('procedures')
       .select('id')
       .ilike('name', validatedData.name)
-      .neq('id', params.id)
+      .neq('id', id)
       .single()
 
     if (duplicateProcedure) {
@@ -101,7 +103,7 @@ export async function PUT(
         ...validatedData,
         updated_at: new Date().toISOString()
       })
-      .eq('id', params.id)
+      .eq('id', id)
       .select('*')
       .single()
 
@@ -136,7 +138,7 @@ export async function PUT(
 // DELETE /api/procedures/[id] - Delete procedure
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = request.cookies.get('auth-token')?.value
@@ -149,13 +151,14 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
     }
 
+    const { id } = await params
     const supabase = await createClient()
 
     // Check if procedure exists
     const { data: existingProcedure, error: fetchError } = await supabase
       .from('procedures')
       .select('id')
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (fetchError || !existingProcedure) {
@@ -169,7 +172,7 @@ export async function DELETE(
     const { data: treatmentProcedures, error: checkError } = await supabase
       .from('treatment_procedures')
       .select('id')
-      .eq('procedure_id', params.id)
+      .eq('procedure_id', id)
       .limit(1)
 
     if (checkError) {
@@ -191,7 +194,7 @@ export async function DELETE(
     const { error: deleteError } = await supabase
       .from('procedures')
       .delete()
-      .eq('id', params.id)
+      .eq('id', id)
 
     if (deleteError) {
       console.error('Error deleting procedure:', deleteError)

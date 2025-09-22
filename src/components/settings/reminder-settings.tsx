@@ -475,7 +475,7 @@ export default function ReminderSettings() {
                             />
                           </FormControl>
                           <FormDescription>
-                            If empty, will use the patient's email address
+                            If empty, will use the patient&apos;s email address
                           </FormDescription>
                           <FormMessage />
                         </FormItem>

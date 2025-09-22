@@ -1,132 +1,100 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { getCurrentUser } from '@/lib/auth-local'
+import { createApiHandler, createSuccessResponse, ApiErrorClass } from '@/lib/middleware'
 import { procedureSchema } from '@/lib/validations'
 import { z } from 'zod'
 
+// Query parameters validation schema for procedure listing
+const getProceduresQuerySchema = z.object({
+  search: z.string().optional(),
+  is_active: z.coerce.boolean().optional(),
+  limit: z.coerce.number().min(1).max(100).default(50),
+  offset: z.coerce.number().min(0).default(0),
+  sort_by: z.enum(['name', 'default_cost', 'created_at']).default('name'),
+  sort_order: z.enum(['asc', 'desc']).default('asc')
+})
+
 // GET /api/procedures - List procedures with filtering and search
-export async function GET(request: NextRequest) {
-  try {
-    const token = request.cookies.get('auth-token')?.value
-    if (!token) {
-      return NextResponse.json({ error: 'No authentication token' }, { status: 401 })
-    }
-
-    const user = await getCurrentUser(token)
-    if (!user) {
-      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
-    }
-
+export const GET = createApiHandler()
+  .requireAuth()
+  .validateQuery(getProceduresQuerySchema)
+  .handle(async (request: NextRequest, user: any, queryParams: z.infer<typeof getProceduresQuerySchema>) => {
     const supabase = await createClient()
-    const { searchParams } = new URL(request.url)
-
-    const search = searchParams.get('search')
-    const isActive = searchParams.get('is_active')
-    const limit = parseInt(searchParams.get('limit') || '50')
-    const offset = parseInt(searchParams.get('offset') || '0')
+    const { search, is_active, limit, offset, sort_by, sort_order } = queryParams
 
     let query = supabase
       .from('procedures')
-      .select('*')
-      .order('name', { ascending: true })
+      .select('*', { count: 'exact' })
+      .order(sort_by, { ascending: sort_order === 'asc' })
       .range(offset, offset + limit - 1)
 
     // Apply filters
     if (search) {
       query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`)
     }
-    if (isActive !== null && isActive !== undefined) {
-      query = query.eq('is_active', isActive === 'true')
+    if (is_active !== undefined) {
+      query = query.eq('is_active', is_active)
     }
 
     const { data: procedures, error, count } = await query
 
     if (error) {
       console.error('Error fetching procedures:', error)
-      return NextResponse.json(
-        { error: 'Failed to fetch procedures' },
-        { status: 500 }
-      )
+      throw new ApiErrorClass('Failed to fetch procedures', 500)
     }
 
-    return NextResponse.json({
+    return createSuccessResponse({
       procedures: procedures || [],
-      total: count || 0,
-      limit,
-      offset
+      pagination: {
+        limit,
+        offset,
+        total: count || 0,
+        hasMore: (count || 0) > offset + limit
+      }
     })
-  } catch (error) {
-    console.error('Error in GET /api/procedures:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
-}
+  })
 
 // POST /api/procedures - Create new procedure
-export async function POST(request: NextRequest) {
-  try {
-    const token = request.cookies.get('auth-token')?.value
-    if (!token) {
-      return NextResponse.json({ error: 'No authentication token' }, { status: 401 })
-    }
-
-    const user = await getCurrentUser(token)
-    if (!user) {
-      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
-    }
-
-    const body = await request.json()
-    const validatedData = procedureSchema.parse(body)
-
+export const POST = createApiHandler()
+  .requireAuth()
+  .validateBody(procedureSchema)
+  .handle(async (request: NextRequest, user: any, validatedData: z.infer<typeof procedureSchema>) => {
     const supabase = await createClient()
 
-    // Check if procedure with same name already exists
-    const { data: existingProcedure } = await supabase
-      .from('procedures')
-      .select('id')
-      .ilike('name', validatedData.name)
-      .single()
+    try {
+      // Check if procedure with same name already exists
+      const { data: existingProcedure } = await supabase
+        .from('procedures')
+        .select('id')
+        .ilike('name', validatedData.name)
+        .single()
 
-    if (existingProcedure) {
-      return NextResponse.json(
-        { error: 'Procedure with this name already exists' },
-        { status: 409 }
+      if (existingProcedure) {
+        throw new ApiErrorClass('Procedure with this name already exists', 409)
+      }
+
+      // Create procedure
+      const { data: procedure, error: createError } = await supabase
+        .from('procedures')
+        .insert([validatedData])
+        .select('*')
+        .single()
+
+      if (createError) {
+        console.error('Error creating procedure:', createError)
+        throw new ApiErrorClass('Failed to create procedure', 500)
+      }
+
+      return createSuccessResponse(
+        { procedure },
+        'Procedure created successfully',
+        201
       )
+    } catch (error) {
+      if (error instanceof ApiErrorClass) {
+        throw error
+      }
+      console.error('Unexpected error creating procedure:', error)
+      throw new ApiErrorClass('Failed to create procedure', 500)
     }
-
-    // Create procedure
-    const { data: procedure, error: createError } = await supabase
-      .from('procedures')
-      .insert([validatedData])
-      .select('*')
-      .single()
-
-    if (createError) {
-      console.error('Error creating procedure:', createError)
-      return NextResponse.json(
-        { error: 'Failed to create procedure' },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json({
-      procedure,
-      message: 'Procedure created successfully'
-    }, { status: 201 })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation error', details: error.issues },
-        { status: 400 }
-      )
-    }
-
-    console.error('Error in POST /api/procedures:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
-}
+  })

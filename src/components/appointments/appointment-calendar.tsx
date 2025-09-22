@@ -21,32 +21,16 @@ import {
   CalendarDays
 } from 'lucide-react'
 import { format, startOfMonth, endOfMonth, isToday, parseISO, addDays } from 'date-fns'
+import { Patient, Appointment } from '@/types'
 
-interface Patient {
-  id: string
-  patient_id: string
-  first_name: string
-  last_name: string
-  phone?: string
-  email?: string
-}
-
-interface Appointment {
-  id: string
-  patient_id: string
-  appointment_date: string
-  appointment_time: string
-  duration_minutes: number
-  status: 'scheduled' | 'completed' | 'cancelled' | 'no-show'
-  reason?: string
-  notes?: string
+interface AppointmentWithPatient extends Appointment {
   patients: Patient
 }
 
 interface AppointmentCalendarProps {
   selectedDate?: Date
   onDateSelect?: (date: Date | undefined) => void
-  onAppointmentClick?: (appointment: Appointment) => void
+  onAppointmentClick?: (appointment: AppointmentWithPatient) => void
   refreshTrigger?: number
   className?: string
 }
@@ -58,7 +42,7 @@ export default function AppointmentCalendar({
   refreshTrigger,
   className
 }: AppointmentCalendarProps) {
-  const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [appointments, setAppointments] = useState<AppointmentWithPatient[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date())
@@ -98,7 +82,7 @@ export default function AppointmentCalendar({
     fetchAppointments()
   }, [fetchAppointments, refreshTrigger])
 
-  const getAppointmentsForDate = (date: Date): Appointment[] => {
+  const getAppointmentsForDate = (date: Date): AppointmentWithPatient[] => {
     const dateStr = format(date, 'yyyy-MM-dd')
     return appointments.filter(appointment => appointment.appointment_date === dateStr)
   }
@@ -224,11 +208,11 @@ export default function AppointmentCalendar({
                       today: "ring-2 ring-primary ring-offset-1 font-semibold"
                     }}
                     components={{
-                      DayContent: ({ date }) => {
-                        const appointmentCount = getAppointmentCountForDate(date)
+                      Day: ({ day }) => {
+                        const appointmentCount = getAppointmentCountForDate(day.date)
                         return (
                           <div className="relative w-full h-full flex items-center justify-center">
-                            <span>{format(date, 'd')}</span>
+                            <span>{format(day.date, 'd')}</span>
                             {getDensityIndicator(appointmentCount)}
                           </div>
                         )
@@ -292,7 +276,7 @@ export default function AppointmentCalendar({
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Go to today's schedule</p>
+                        <p>Go to today&apos;s schedule</p>
                       </TooltipContent>
                     </Tooltip>
                   </div>

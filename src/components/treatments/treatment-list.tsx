@@ -12,59 +12,12 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Search, Filter, Calendar, RefreshCw, AlertCircle, FileText, User, Clock, Receipt, Eye, CreditCard } from 'lucide-react'
 import { format, subDays, addDays } from 'date-fns'
 import { formatCurrency } from '@/lib/utils/cost-calculations'
-
-interface Patient {
-  id: string
-  patient_id: string
-  first_name: string
-  last_name: string
-  phone?: string
-  email?: string
-}
-
-interface Appointment {
-  id: string
-  appointment_date: string
-  appointment_time: string
-}
-
-interface Procedure {
-  id: string
-  name: string
-  description?: string
-}
-
-interface TreatmentProcedure {
-  id: string
-  procedure_id: string
-  quantity: number
-  cost_per_unit: number
-  total_cost: number
-  tooth_number?: string
-  notes?: string
-  procedures: Procedure
-}
-
-interface Treatment {
-  id: string
-  patient_id: string
-  appointment_id?: string
-  treatment_date: string
-  total_cost: number
-  payment_status: 'pending' | 'partial' | 'paid'
-  treatment_status?: 'scheduled' | 'completed' | 'cancelled'
-  notes?: string
-  created_at: string
-  updated_at: string
-  patients: Patient
-  appointments?: Appointment
-  treatment_procedures: TreatmentProcedure[]
-}
+import { TreatmentWithDetails } from '@/types/database'
 
 interface TreatmentListProps {
-  onEdit?: (treatment: Treatment) => void
-  onViewDetails?: (treatment: Treatment) => void
-  onGenerateInvoice?: (treatment: Treatment) => void
+  onEdit?: (treatment: TreatmentWithDetails) => void
+  onViewDetails?: (treatment: TreatmentWithDetails) => void
+  onGenerateInvoice?: (treatment: TreatmentWithDetails) => void
   refreshTrigger?: number
   className?: string
 }
@@ -76,7 +29,7 @@ export default function TreatmentList({
   refreshTrigger,
   className
 }: TreatmentListProps) {
-  const [treatments, setTreatments] = useState<Treatment[]>([])
+  const [treatments, setTreatments] = useState<TreatmentWithDetails[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -180,10 +133,10 @@ export default function TreatmentList({
     // Search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
-      const patientName = `${treatment.patients.first_name} ${treatment.patients.last_name}`.toLowerCase()
-      const patientId = treatment.patients.patient_id.toLowerCase()
+      const patientName = `${treatment.patient?.first_name} ${treatment.patient?.last_name}`.toLowerCase()
+      const patientId = treatment.patient?.patient_id?.toLowerCase() || ''
       const notes = treatment.notes?.toLowerCase() || ''
-      const procedures = treatment.treatment_procedures.map(tp => tp.procedures.name.toLowerCase()).join(' ')
+      const procedures = treatment.treatment_procedures?.map(tp => tp.procedure?.name?.toLowerCase()).join(' ') || ''
 
       if (!(
         patientName.includes(searchLower) ||
@@ -244,7 +197,7 @@ export default function TreatmentList({
     }
   }
 
-  const getPaymentStatusBadge = (status: Treatment['payment_status']) => {
+  const getPaymentStatusBadge = (status: TreatmentWithDetails['payment_status']) => {
     switch (status) {
       case 'paid':
         return <Badge variant="secondary">Paid</Badge>
@@ -493,10 +446,10 @@ export default function TreatmentList({
                         <div className="flex items-center gap-2">
                           <User className="h-4 w-4" />
                           <span className="font-medium">
-                            {treatment.patients.first_name} {treatment.patients.last_name}
+                            {treatment.patient?.first_name} {treatment.patient?.last_name}
                           </span>
                           <Badge variant="outline" className="text-xs">
-                            {treatment.patients.patient_id}
+                            {treatment.patient?.patient_id}
                           </Badge>
                         </div>
                         <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
@@ -505,12 +458,12 @@ export default function TreatmentList({
                             {format(new Date(treatment.treatment_date), 'PPP')}
                           </span>
                           <span>•</span>
-                          <span>{treatment.treatment_procedures.length} procedures</span>
+                          <span>{treatment.treatment_procedures?.length || 0} procedures</span>
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      {getTreatmentStatusBadge(treatment.treatment_date, treatment.treatment_status)}
+                      {getTreatmentStatusBadge(treatment.treatment_date, undefined)}
                       <Badge variant="default" className="font-semibold">
                         {formatCurrency(treatment.total_cost)}
                       </Badge>
@@ -526,12 +479,12 @@ export default function TreatmentList({
                       <div className="text-sm text-muted-foreground space-y-1">
                         <div className={getTreatmentDateStyle(treatment.treatment_date)}>
                           Date: {format(new Date(treatment.treatment_date), 'PPP')}
-                          {getTreatmentStatusBadge(treatment.treatment_date, treatment.treatment_status)}
+                          {getTreatmentStatusBadge(treatment.treatment_date, undefined)}
                         </div>
-                        {treatment.appointments && (
+                        {treatment.appointment && (
                           <div>
-                            Appointment: {format(new Date(treatment.appointments.appointment_date), 'PPP')}
-                            at {treatment.appointments.appointment_time}
+                            Appointment: {format(new Date(treatment.appointment.appointment_date), 'PPP')}
+                            at {treatment.appointment.appointment_time}
                           </div>
                         )}
                         <div>Total Cost: {formatCurrency(treatment.total_cost)}</div>
@@ -550,12 +503,12 @@ export default function TreatmentList({
                   <div className="space-y-2">
                     <h4 className="text-sm font-semibold">Procedures Performed</h4>
                     <div className="space-y-2">
-                      {treatment.treatment_procedures.map((tp) => (
+                      {treatment.treatment_procedures?.map((tp) => (
                         <div key={tp.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-md">
                           <div className="space-y-1">
-                            <div className="text-sm font-semibold">{tp.procedures.name}</div>
+                            <div className="text-sm font-semibold">{tp.procedure?.name}</div>
                             <div className="text-xs text-muted-foreground">
-                              Quantity: {tp.quantity} × {formatCurrency(tp.cost_per_unit)}
+                              Quantity: {tp.quantity} × {formatCurrency(tp.cost_per_unit ?? 0)}
                               {tp.tooth_number && ` • Tooth: ${tp.tooth_number}`}
                             </div>
                             {tp.notes && (
@@ -563,7 +516,7 @@ export default function TreatmentList({
                             )}
                           </div>
                           <Badge variant="outline">
-                            {formatCurrency(tp.total_cost)}
+                            {formatCurrency(tp.total_cost ?? 0)}
                           </Badge>
                         </div>
                       ))}

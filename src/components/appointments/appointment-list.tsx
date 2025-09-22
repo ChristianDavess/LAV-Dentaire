@@ -11,30 +11,14 @@ import { Badge } from '@/components/ui/badge'
 import { Search, Filter, Calendar, Users, AlertCircle, RefreshCw } from 'lucide-react'
 import AppointmentCard from './appointment-card'
 import { format, subDays, addDays } from 'date-fns'
+import { Patient, Appointment } from '@/types'
 
-interface Patient {
-  id: string
-  patient_id: string
-  first_name: string
-  last_name: string
-  phone?: string
-  email?: string
-}
-
-interface Appointment {
-  id: string
-  patient_id: string
-  appointment_date: string
-  appointment_time: string
-  duration_minutes: number
-  status: 'scheduled' | 'completed' | 'cancelled' | 'no-show'
-  reason?: string
-  notes?: string
+interface AppointmentWithPatient extends Appointment {
   patients: Patient
 }
 
 interface AppointmentListProps {
-  onEdit?: (appointment: Appointment) => void
+  onEdit?: (appointment: AppointmentWithPatient) => void
   onStatusChange?: (appointmentId: string, status: Appointment['status']) => void
   onCancel?: (appointmentId: string) => void
   refreshTrigger?: number
@@ -48,7 +32,7 @@ export default function AppointmentList({
   refreshTrigger,
   className
 }: AppointmentListProps) {
-  const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [appointments, setAppointments] = useState<AppointmentWithPatient[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
