@@ -22,16 +22,20 @@ export class ApiHandler {
 
   // Add body validation
   validateBody<T>(schema: ZodSchema<T>) {
-    this.middlewares.push((req: NextRequest, handler: any) =>
-      withValidation(req, schema, handler)
+    this.middlewares.push((req: NextRequest, handler: any, ...args: any[]) =>
+      withValidation(req, schema, (r: NextRequest, validatedBody: T) =>
+        handler(r, ...args, validatedBody)
+      )
     )
     return this
   }
 
   // Add query validation
   validateQuery<T>(schema: ZodSchema<T>) {
-    this.middlewares.push((req: NextRequest, handler: any) =>
-      withQueryValidation(req, schema, handler)
+    this.middlewares.push((req: NextRequest, handler: any, ...args: any[]) =>
+      withQueryValidation(req, schema, (r: NextRequest, validatedQuery: T) =>
+        handler(r, ...args, validatedQuery)
+      )
     )
     return this
   }

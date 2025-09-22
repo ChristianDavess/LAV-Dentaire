@@ -40,7 +40,9 @@ export function Header({ user }: HeaderProps) {
 
   const fetchNotifications = async () => {
     try {
-      const response = await fetch('/api/notifications')
+      const response = await fetch('/api/notifications', {
+        credentials: 'include'
+      })
 
       if (!response.ok) {
         // If unauthorized or other errors, use sample notifications

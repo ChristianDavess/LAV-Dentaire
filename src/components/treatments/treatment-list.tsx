@@ -95,7 +95,7 @@ export default function TreatmentList({
       }
 
       const data = await response.json()
-      setTreatments(data.treatments || [])
+      setTreatments(data.data?.treatments || [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load treatments')
     } finally {

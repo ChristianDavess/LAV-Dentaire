@@ -82,7 +82,7 @@ export default function AppointmentList({
       }
 
       const data = await response.json()
-      setAppointments(data.appointments || [])
+      setAppointments(data.data?.appointments || [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load appointments')
     } finally {

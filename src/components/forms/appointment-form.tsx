@@ -71,10 +71,12 @@ export default function AppointmentForm({ appointment, onSubmit, onCancel }: App
   const fetchPatients = async () => {
     setLoadingPatients(true)
     try {
-      const response = await fetch('/api/patients')
+      const response = await fetch('/api/patients', {
+        credentials: 'include'
+      })
       if (response.ok) {
         const data = await response.json()
-        setPatients(data.patients || [])
+        setPatients(data.data?.patients || [])
       }
     } catch (error) {
       console.error('Error fetching patients:', error)

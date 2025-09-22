@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { createApiHandler, createSuccessResponse, ApiErrorClass } from '@/lib/middleware'
 import { z } from 'zod'
 
@@ -9,7 +9,7 @@ const getTreatmentsQuerySchema = z.object({
   end_date: z.string().optional(),
   payment_status: z.enum(['pending', 'partial', 'paid']).optional(),
   patient_id: z.string().uuid().optional(),
-  limit: z.coerce.number().min(1).max(100).default(50),
+  limit: z.coerce.number().min(1).max(500).default(50),
   offset: z.coerce.number().min(0).default(0)
 })
 
@@ -44,11 +44,14 @@ const createTreatmentSchema = z.object({
 // GET /api/treatments - List treatments with filtering
 export const GET = createApiHandler()
   .requireAuth()
-  .validateQuery(getTreatmentsQuerySchema)
-  .handle(async (request: NextRequest, user: any, queryParams: z.infer<typeof getTreatmentsQuerySchema>) => {
-    const supabase = await createClient()
+  .handle(async (request: NextRequest, user: any) => {
+    const supabase = createServiceClient()
 
-    const { start_date, end_date, payment_status, patient_id, limit, offset } = queryParams
+    // Parse and validate query parameters manually
+    const url = new URL(request.url)
+    const queryParams = Object.fromEntries(url.searchParams.entries())
+    const validatedQuery = getTreatmentsQuerySchema.parse(queryParams)
+    const { start_date, end_date, payment_status, patient_id, limit, offset } = validatedQuery
 
     let query = supabase
       .from('treatments')
@@ -100,7 +103,7 @@ export const POST = createApiHandler()
   .requireAuth()
   .validateBody(createTreatmentSchema)
   .handle(async (request: NextRequest, user: any, treatmentData: z.infer<typeof createTreatmentSchema>) => {
-    const supabase = await createClient()
+    const supabase = createServiceClient()
 
     try {
       // Start transaction

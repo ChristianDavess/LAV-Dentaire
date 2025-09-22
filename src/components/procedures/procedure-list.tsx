@@ -50,7 +50,7 @@ export default function ProcedureList({ className }: ProcedureListProps) {
       }
 
       const data = await response.json()
-      setProcedures(data.procedures || [])
+      setProcedures(data.data?.procedures || [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load procedures')
     } finally {
