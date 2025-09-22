@@ -69,6 +69,22 @@ export const GET = createApiHandler()
           id,
           appointment_date,
           appointment_time
+        ),
+        treatment_procedures (
+          id,
+          procedure_id,
+          quantity,
+          cost_per_unit,
+          total_cost,
+          tooth_number,
+          notes,
+          procedure:procedure_id (
+            id,
+            name,
+            description,
+            default_cost,
+            estimated_duration
+          )
         )
       `)
       .order('treatment_date', { ascending: false })

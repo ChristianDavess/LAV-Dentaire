@@ -53,19 +53,19 @@ const InvoiceContent = forwardRef<HTMLDivElement, { treatment: TreatmentWithDeta
           <h3 className="text-lg font-semibold mb-3">Bill To:</h3>
           <div className="bg-gray-50 p-4 rounded-lg">
             <div className="font-semibold text-lg">
-              {treatment.patient?.first_name} {treatment.patient?.last_name}
+              {treatment.patients?.first_name} {treatment.patients?.last_name}
             </div>
             <div className="text-sm text-gray-600 mt-1">
-              Patient ID: {treatment.patient?.patient_id}
+              Patient ID: {treatment.patients?.patient_id}
             </div>
-            {treatment.patient?.phone && (
+            {treatment.patients?.phone && (
               <div className="text-sm text-gray-600">
-                Phone: {treatment.patient?.phone}
+                Phone: {treatment.patients?.phone}
               </div>
             )}
-            {treatment.patient?.email && (
+            {treatment.patients?.email && (
               <div className="text-sm text-gray-600">
-                Email: {treatment.patient?.email}
+                Email: {treatment.patients?.email}
               </div>
             )}
           </div>
@@ -200,7 +200,7 @@ export default function TreatmentInvoice({
         <DialogHeader className="print:hidden">
           <DialogTitle>Treatment Invoice</DialogTitle>
           <DialogDescription>
-            Invoice for treatment provided to {treatment.patient?.first_name} {treatment.patient?.last_name}
+            Invoice for treatment provided to {treatment.patients?.first_name} {treatment.patients?.last_name}
           </DialogDescription>
           <div className="flex items-center gap-2 pt-2">
             <Button

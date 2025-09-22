@@ -334,7 +334,7 @@ export interface AppointmentWithPatient extends Appointment {
 }
 
 export interface TreatmentWithDetails extends Treatment {
-  patient?: Patient
+  patients?: Patient
   appointment?: Appointment
   treatment_procedures?: (TreatmentProcedure & { procedure?: Procedure })[]
 }

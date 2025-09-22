@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Plus, Calendar, List, Loader2 } from 'lucide-react'
-import { AppointmentCalendar, AppointmentList } from '@/components/appointments'
+import { AppointmentList } from '@/components/appointments'
+import AppointmentCalendarV2 from '@/components/appointments/appointment-calendar-v2'
 import AppointmentForm from '@/components/forms/appointment-form'
 import { useToast } from '@/hooks/use-toast'
 import { Patient, Appointment } from '@/types'
@@ -160,6 +161,11 @@ export default function AppointmentsPage() {
     setEditingAppointment(appointment)
   }
 
+  const handleNewAppointmentFromCalendar = (date?: Date, time?: string) => {
+    // TODO: Pre-fill appointment form with selected date and time
+    setIsNewAppointmentOpen(true)
+  }
+
   return (
     <div className="p-6 h-full flex flex-col">
       <div className="flex items-center justify-between">
@@ -208,10 +214,13 @@ export default function AppointmentsPage() {
         </TabsList>
 
         <TabsContent value="calendar" className="space-y-6">
-          <AppointmentCalendar
+          <AppointmentCalendarV2
             selectedDate={selectedDate}
             onDateSelect={setSelectedDate}
             onAppointmentClick={handleAppointmentClick}
+            onAppointmentEdit={setEditingAppointment}
+            onAppointmentStatusChange={handleStatusChange}
+            onNewAppointment={handleNewAppointmentFromCalendar}
             refreshTrigger={refreshTrigger}
           />
         </TabsContent>
