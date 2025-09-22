@@ -19,7 +19,9 @@ export function useMedicalHistoryFields() {
       setLoading(true)
       setError(null)
 
-      const response = await fetch('/api/medical-history-fields')
+      const response = await fetch('/api/medical-history-fields', {
+        credentials: 'include'
+      })
 
       if (!response.ok) {
         // If 404, it might mean the table doesn't exist yet - return empty array
@@ -50,6 +52,7 @@ export function useMedicalHistoryFields() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(fieldData),
       })
 

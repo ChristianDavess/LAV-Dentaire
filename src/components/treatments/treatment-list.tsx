@@ -133,8 +133,8 @@ export default function TreatmentList({
     // Search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
-      const patientName = `${treatment.patient?.first_name} ${treatment.patient?.last_name}`.toLowerCase()
-      const patientId = treatment.patient?.patient_id?.toLowerCase() || ''
+      const patientName = `${treatment.patients?.first_name} ${treatment.patients?.last_name}`.toLowerCase()
+      const patientId = treatment.patients?.patient_id?.toLowerCase() || ''
       const notes = treatment.notes?.toLowerCase() || ''
       const procedures = treatment.treatment_procedures?.map(tp => tp.procedure?.name?.toLowerCase()).join(' ') || ''
 
@@ -446,10 +446,10 @@ export default function TreatmentList({
                         <div className="flex items-center gap-2">
                           <User className="h-4 w-4" />
                           <span className="font-medium">
-                            {treatment.patient?.first_name} {treatment.patient?.last_name}
+                            {treatment.patients?.first_name} {treatment.patients?.last_name}
                           </span>
                           <Badge variant="outline" className="text-xs">
-                            {treatment.patient?.patient_id}
+                            {treatment.patients?.patient_id}
                           </Badge>
                         </div>
                         <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">

@@ -63,7 +63,7 @@ export default function TreatmentDetails({
             Treatment Details
           </DialogTitle>
           <DialogDescription>
-            Complete treatment information for {treatment.patient?.first_name} {treatment.patient?.last_name}
+            Complete treatment information for {treatment.patients?.first_name} {treatment.patients?.last_name}
           </DialogDescription>
         </DialogHeader>
 
@@ -76,9 +76,9 @@ export default function TreatmentDetails({
                   <div className="flex items-center gap-2">
                     <User className="h-5 w-5 text-primary" />
                     <h3 className="text-lg font-semibold">
-                      {treatment.patient?.first_name} {treatment.patient?.last_name}
+                      {treatment.patients?.first_name} {treatment.patients?.last_name}
                     </h3>
-                    <Badge variant="outline">{treatment.patient?.patient_id}</Badge>
+                    <Badge variant="outline">{treatment.patients?.patient_id}</Badge>
                   </div>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">

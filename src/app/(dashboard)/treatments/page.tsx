@@ -36,6 +36,7 @@ export default function TreatmentsPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(treatmentData),
       })
 

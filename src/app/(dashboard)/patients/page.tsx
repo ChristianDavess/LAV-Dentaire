@@ -73,14 +73,16 @@ const formatGender = (gender: string | null | undefined): string => {
 async function fetchPatients(): Promise<Patient[]> {
   try {
     console.log('🌐 Making API call to /api/patients')
-    const response = await fetch('/api/patients')
+    const response = await fetch('/api/patients', {
+      credentials: 'include'
+    })
     console.log('🌐 API response status:', response.status)
     if (!response.ok) {
       throw new Error('Failed to fetch patients')
     }
     const data = await response.json()
-    console.log('🌐 API returned patients count:', data.patients?.length || 0)
-    return data.patients || []
+    console.log('🌐 API returned patients count:', data.data?.patients?.length || 0)
+    return data.data?.patients || []
   } catch (error) {
     console.error('❌ Error fetching patients:', error)
     return []
