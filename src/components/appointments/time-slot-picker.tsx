@@ -97,7 +97,7 @@ export default function TimeSlotPicker({
       <Card className={className}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
+            <Clock className="h-4 w-4" />
             Select Time
           </CardTitle>
         </CardHeader>
@@ -115,7 +115,7 @@ export default function TimeSlotPicker({
       <Card className={className}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
+            <Clock className="h-4 w-4" />
             Select Time
           </CardTitle>
         </CardHeader>
@@ -146,7 +146,7 @@ export default function TimeSlotPicker({
       <Card className={className}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
+            <Clock className="h-4 w-4" />
             Select Time
           </CardTitle>
         </CardHeader>
@@ -165,7 +165,7 @@ export default function TimeSlotPicker({
       <Card className={className}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
+            <Clock className="h-4 w-4" />
             Select Time
           </CardTitle>
         </CardHeader>

@@ -73,7 +73,7 @@ const InvoiceContent = forwardRef<HTMLDivElement, { treatment: Treatment }>(
         {/* Header */}
         <div className="flex justify-between items-start mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-primary mb-2">LAV Dentaire</h1>
+            <h1 className="text-lg font-semibold text-primary mb-2">LAV Dentaire</h1>
             <div className="text-sm text-gray-600 space-y-1">
               <div>Professional Dental Services</div>
               <div>📧 info@lavdentaire.com</div>
@@ -82,7 +82,7 @@ const InvoiceContent = forwardRef<HTMLDivElement, { treatment: Treatment }>(
             </div>
           </div>
           <div className="text-right">
-            <h2 className="text-2xl font-bold mb-2">INVOICE</h2>
+            <h2 className="text-xl font-semibold mb-2">INVOICE</h2>
             <div className="text-sm space-y-1">
               <div><strong>Invoice #:</strong> {invoiceNumber}</div>
               <div><strong>Date:</strong> {format(today, 'PPP')}</div>

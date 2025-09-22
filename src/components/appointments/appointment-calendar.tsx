@@ -8,8 +8,19 @@ import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { CalendarDays, ChevronLeft, ChevronRight, AlertCircle, Calendar as CalendarIcon } from 'lucide-react'
-import { format, startOfMonth, endOfMonth, isSameDay, addDays, startOfWeek, addWeeks } from 'date-fns'
+import { Separator } from '@/components/ui/separator'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  User,
+  CheckCircle,
+  XCircle,
+  UserX,
+  AlertCircle,
+  CalendarDays
+} from 'lucide-react'
+import { format, startOfMonth, endOfMonth, isToday, parseISO, addDays } from 'date-fns'
 
 interface Patient {
   id: string
@@ -52,13 +63,6 @@ export default function AppointmentCalendar({
   const [error, setError] = useState<string | null>(null)
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date())
 
-  // Set today as default if no date is selected on first load
-  useEffect(() => {
-    if (!selectedDate && onDateSelect) {
-      onDateSelect(new Date())
-    }
-  }, [])
-
   const fetchAppointments = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -73,7 +77,9 @@ export default function AppointmentCalendar({
         limit: '100'
       })
 
-      const response = await fetch(`/api/appointments?${params.toString()}`)
+      const response = await fetch(`/api/appointments?${params.toString()}`, {
+        credentials: 'include'
+      })
 
       if (!response.ok) {
         throw new Error('Failed to fetch appointments')
@@ -101,21 +107,21 @@ export default function AppointmentCalendar({
     return getAppointmentsForDate(date).length
   }
 
-  const getStatusBadgeVariant = (status: Appointment['status']) => {
-    switch (status) {
-      case 'scheduled':
-        return 'default' as const
-      case 'completed':
-        return 'secondary' as const
-      case 'cancelled':
-        return 'destructive' as const
-      case 'no-show':
-        return 'outline' as const
-      default:
-        return 'default' as const
-    }
+  const getDensityClass = (count: number) => {
+    if (count === 0) return ''
+    if (count <= 2) return 'bg-secondary text-secondary-foreground'
+    if (count <= 4) return 'bg-primary/10 text-primary'
+    return 'bg-destructive/10 text-destructive'
   }
 
+  const getDensityIndicator = (count: number) => {
+    if (count === 0) return null
+    return (
+      <div className={`absolute -top-0.5 -right-0.5 min-w-[12px] h-3 rounded-full text-[10px] font-medium flex items-center justify-center ${getDensityClass(count)}`}>
+        {count > 9 ? '9+' : count}
+      </div>
+    )
+  }
 
   // Default to today if no date selected
   const displayDate = selectedDate || new Date()
@@ -123,30 +129,36 @@ export default function AppointmentCalendar({
 
   if (loading) {
     return (
-      <div className={className}>
-        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
-          {/* Calendar Panel Skeleton */}
-          <div className="w-full lg:w-auto lg:flex-shrink-0">
-            <Card>
+      <div className={`${className} h-full`}>
+        <div className="flex flex-col lg:flex-row gap-6 h-full">
+          <div className="w-full lg:w-auto lg:flex-shrink-0 lg:h-full">
+            <Card className="h-full flex flex-col">
               <CardHeader>
-                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-6 w-24" />
               </CardHeader>
-              <CardContent>
-                <Skeleton className="h-80 w-full" />
+              <CardContent className="p-6 flex-1 flex flex-col">
+                <Skeleton className="h-80 w-full mb-6 flex-1" />
+                <Skeleton className="h-4 w-16 mb-4" />
+                <div className="space-y-3">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                </div>
               </CardContent>
             </Card>
           </div>
-
-          {/* Schedule Panel Skeleton */}
-          <div className="w-full lg:flex-1 lg:min-w-0">
-            <Card>
+          <div className="w-full lg:flex-1 lg:min-w-0 h-full">
+            <Card className="h-full flex flex-col">
               <CardHeader>
                 <Skeleton className="h-6 w-48" />
+                <Skeleton className="h-4 w-32" />
               </CardHeader>
-              <CardContent className="space-y-4">
-                <Skeleton className="h-32 w-full" />
-                <Skeleton className="h-32 w-full" />
-                <Skeleton className="h-32 w-full" />
+              <CardContent className="p-0 flex-1">
+                <div className="p-6 space-y-4">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-20 w-full" />
+                  ))}
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -168,131 +180,244 @@ export default function AppointmentCalendar({
 
   return (
     <TooltipProvider>
-      <div className={className}>
-        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
-          {/* Left Panel - Calendar */}
-          <div className="w-full lg:w-auto lg:flex-shrink-0">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base font-semibold flex items-center gap-2">
+      <div className={`${className} h-full`}>
+        <div className="flex flex-col lg:flex-row gap-6 h-full">
+          {/* Calendar Panel */}
+          <div className="w-full lg:w-auto lg:flex-shrink-0 lg:h-full">
+            <Card className="h-full flex flex-col">
+              <CardHeader>
+                <CardTitle className="text-base font-semibold flex items-center gap-3">
                   <CalendarIcon className="h-4 w-4" />
                   Calendar
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-3 flex justify-center">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={onDateSelect}
-                  defaultMonth={currentMonth}
-                  onMonthChange={setCurrentMonth}
-                  numberOfMonths={2}
-                  className="rounded-lg border shadow-sm"
-                  modifiers={{
-                    hasAppointments: (date) => getAppointmentCountForDate(date) > 0
-                  }}
-                  modifiersClassNames={{
-                    hasAppointments: "relative after:absolute after:-top-1 after:-right-1 after:bg-primary after:text-primary-foreground after:text-xs after:rounded-full after:h-4 after:w-4 after:flex after:items-center after:justify-center after:font-medium after:content-['•']"
-                  }}
-                />
+              <CardContent className="p-6 flex-1 flex flex-col justify-center">
+                <div className="flex justify-center mb-8">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={onDateSelect}
+                    defaultMonth={currentMonth}
+                    onMonthChange={setCurrentMonth}
+                    className="rounded-md border-0 scale-110"
+                    modifiers={{
+                      hasAppointments: (date) => getAppointmentCountForDate(date) > 0,
+                      lightLoad: (date) => {
+                        const count = getAppointmentCountForDate(date)
+                        return count > 0 && count <= 2
+                      },
+                      busyLoad: (date) => {
+                        const count = getAppointmentCountForDate(date)
+                        return count >= 3 && count <= 4
+                      },
+                      fullLoad: (date) => {
+                        const count = getAppointmentCountForDate(date)
+                        return count >= 5
+                      },
+                      today: (date) => isToday(date)
+                    }}
+                    modifiersClassNames={{
+                      hasAppointments: "relative",
+                      lightLoad: "bg-secondary text-secondary-foreground",
+                      busyLoad: "bg-primary/10 text-primary",
+                      fullLoad: "bg-destructive/10 text-destructive",
+                      today: "ring-2 ring-primary ring-offset-1 font-semibold"
+                    }}
+                    components={{
+                      DayContent: ({ date }) => {
+                        const appointmentCount = getAppointmentCountForDate(date)
+                        return (
+                          <div className="relative w-full h-full flex items-center justify-center">
+                            <span>{format(date, 'd')}</span>
+                            {getDensityIndicator(appointmentCount)}
+                          </div>
+                        )
+                      }
+                    }}
+                  />
+                </div>
+                <div className="mt-auto">
+                  <Separator className="mb-6" />
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-medium">Legend</h4>
+                    <div className="grid grid-cols-1 gap-3 text-xs">
+                      <div className="flex items-center gap-3">
+                        <div className="w-3 h-3 rounded-full bg-secondary"></div>
+                        <span className="text-muted-foreground">Light (1-2 appointments)</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-3 h-3 rounded-full bg-primary/10"></div>
+                        <span className="text-muted-foreground">Busy (3-4 appointments)</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-3 h-3 rounded-full bg-destructive/10"></div>
+                        <span className="text-muted-foreground">Full (5+ appointments)</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Right Panel - Schedule/Appointments */}
-          <div className="w-full lg:flex-1 lg:min-w-0">
-            <Card>
-              <CardHeader className="pb-4">
+          {/* Schedule Panel */}
+          <div className="w-full lg:flex-1 lg:min-w-0 h-full">
+            <Card className="h-full flex flex-col">
+              <CardHeader>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <CardTitle className="text-base font-semibold flex items-center gap-2">
-                    <CalendarDays className="h-5 w-5" />
-                    <span className="hidden sm:inline">Schedule for {format(displayDate, 'EEEE, MMMM dd, yyyy')}</span>
-                    <span className="sm:hidden">{format(displayDate, 'MMM dd, yyyy')}</span>
-                  </CardTitle>
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onDateSelect?.(new Date())}
-                        className="text-xs"
-                      >
-                        Today
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onDateSelect?.(addDays(new Date(), 1))}
-                        className="text-xs"
-                      >
-                        Tomorrow
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onDateSelect?.(addDays(new Date(), 7))}
-                        className="text-xs hidden sm:inline-flex"
-                      >
-                        Next Week
-                      </Button>
-                    </div>
-                    <Badge variant="secondary" className="text-xs">
-                      {selectedDateAppointments.length} appointments
-                    </Badge>
+                  <div>
+                    <CardTitle className="text-base font-semibold flex items-center gap-3">
+                      <CalendarDays className="h-4 w-4" />
+                      {format(displayDate, 'EEEE, MMMM dd, yyyy')}
+                      {isToday(displayDate) && (
+                        <Badge variant="secondary" className="text-xs">
+                          Today
+                        </Badge>
+                      )}
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {selectedDateAppointments.length} appointments scheduled
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant={isToday(displayDate) ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => onDateSelect?.(new Date())}
+                          className="text-xs"
+                        >
+                          Today
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Go to today's schedule</p>
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                {selectedDateAppointments.length > 0 ? (
-                  <div className="space-y-3">
-                    {selectedDateAppointments
-                      .sort((a, b) => a.appointment_time.localeCompare(b.appointment_time))
-                      .map((appointment) => (
-                        <div
-                          key={appointment.id}
-                          className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors gap-2 sm:gap-0"
-                          onClick={() => onAppointmentClick?.(appointment)}
-                        >
-                          <div className="space-y-1 flex-1">
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-                              <div className="font-medium text-sm text-primary">
-                                {appointment.appointment_time}
-                              </div>
-                              <div className="font-medium text-sm">
-                                {appointment.patients.first_name} {appointment.patients.last_name}
-                              </div>
-                              <Badge variant="outline" className="text-xs w-fit">
-                                {appointment.patients.patient_id}
-                              </Badge>
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              Duration: {appointment.duration_minutes} minutes
-                            </div>
-                            {appointment.reason && (
-                              <div className="text-xs text-muted-foreground">
-                                {appointment.reason}
-                              </div>
+              <CardContent className="p-0 flex-1 min-h-0">
+                <ScrollArea className="h-full">
+                  {selectedDateAppointments.length > 0 ? (
+                    <div className="p-6 space-y-4">
+                      {selectedDateAppointments
+                        .sort((a, b) => a.appointment_time.localeCompare(b.appointment_time))
+                        .map((appointment, index) => (
+                          <div key={appointment.id}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div
+                                  className="flex items-center gap-4 p-4 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                                  onClick={() => onAppointmentClick?.(appointment)}
+                                >
+                                  <div className="flex-shrink-0 text-center">
+                                    <div className="text-sm font-semibold">
+                                      {format(parseISO(`2000-01-01T${appointment.appointment_time}`), 'HH:mm')}
+                                    </div>
+                                    <div className="text-xs text-muted-foreground">
+                                      {appointment.duration_minutes}min
+                                    </div>
+                                  </div>
+
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                      <span className="font-medium text-sm truncate">
+                                        {appointment.patients.first_name} {appointment.patients.last_name}
+                                      </span>
+                                      <Badge variant="outline" className="text-xs flex-shrink-0">
+                                        {appointment.patients.patient_id}
+                                      </Badge>
+                                    </div>
+                                    {appointment.reason && (
+                                      <p className="text-xs text-muted-foreground truncate">
+                                        {appointment.reason}
+                                      </p>
+                                    )}
+                                  </div>
+
+                                  <div className="flex-shrink-0">
+                                    <Badge
+                                      variant={
+                                        appointment.status === 'scheduled' ? 'default' :
+                                        appointment.status === 'completed' ? 'secondary' :
+                                        appointment.status === 'cancelled' ? 'destructive' : 'outline'
+                                      }
+                                      className="flex items-center gap-2"
+                                    >
+                                      {appointment.status === 'scheduled' && <Clock className="h-4 w-4" />}
+                                      {appointment.status === 'completed' && <CheckCircle className="h-4 w-4" />}
+                                      {appointment.status === 'cancelled' && <XCircle className="h-4 w-4" />}
+                                      {appointment.status === 'no-show' && <UserX className="h-4 w-4" />}
+                                      <span className="capitalize">{appointment.status}</span>
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent side="left" className="max-w-xs">
+                                <div className="space-y-2">
+                                  <p className="font-medium">{appointment.patients.first_name} {appointment.patients.last_name}</p>
+                                  <p className="text-xs">Time: {appointment.appointment_time}</p>
+                                  <p className="text-xs">Duration: {appointment.duration_minutes} minutes</p>
+                                  <p className="text-xs">Status: {appointment.status}</p>
+                                  {appointment.reason && <p className="text-xs">Reason: {appointment.reason}</p>}
+                                  {appointment.notes && <p className="text-xs">Notes: {appointment.notes}</p>}
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                            {index < selectedDateAppointments.length - 1 && (
+                              <Separator className="mt-4" />
                             )}
                           </div>
-                          <Badge variant={getStatusBadgeVariant(appointment.status)}>
-                            {appointment.status}
-                          </Badge>
+                        ))}
+
+                      {/* Summary Footer */}
+                      <div className="mt-6 p-4 bg-muted/30 rounded-lg border">
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="h-4 w-4 text-secondary-foreground" />
+                              <span className="text-muted-foreground">
+                                {selectedDateAppointments.filter(a => a.status === 'completed').length} completed
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-muted-foreground">
+                                {selectedDateAppointments.filter(a => a.status === 'scheduled').length} scheduled
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <XCircle className="h-4 w-4 text-destructive" />
+                              <span className="text-muted-foreground">
+                                {selectedDateAppointments.filter(a => a.status === 'cancelled').length} cancelled
+                              </span>
+                            </div>
+                          </div>
+                          <div className="text-muted-foreground">
+                            Total: {selectedDateAppointments.reduce((sum, a) => sum + a.duration_minutes, 0)} minutes
+                          </div>
                         </div>
-                      ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 sm:py-12">
-                    <CalendarDays className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-base sm:text-lg font-medium text-muted-foreground mb-2">
-                      No appointments scheduled
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {isSameDay(displayDate, new Date())
-                        ? "Today is free for new appointments"
-                        : `${format(displayDate, 'EEEE, MMMM dd')} is available`}
-                    </p>
-                  </div>
-                )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-full text-center py-12 px-6">
+                      <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+                        <CalendarDays className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                      <h3 className="text-base font-semibold text-muted-foreground mb-2">
+                        No appointments scheduled
+                      </h3>
+                      <p className="text-sm text-muted-foreground max-w-sm">
+                        {isToday(displayDate)
+                          ? "Today's schedule is clear. Perfect time to catch up or plan ahead!"
+                          : `${format(displayDate, 'EEEE, MMMM dd')} is available for new appointments.`}
+                      </p>
+                    </div>
+                  )}
+                </ScrollArea>
               </CardContent>
             </Card>
           </div>

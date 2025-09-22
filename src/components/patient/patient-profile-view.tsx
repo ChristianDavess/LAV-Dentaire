@@ -21,7 +21,7 @@ import {
   Users,
   Heart,
   FileText,
-  DollarSign,
+  CreditCard,
   Activity,
   Edit,
   Eye,
@@ -318,15 +318,15 @@ export function PatientProfileView({ patient, trigger, onPatientUpdate }: Patien
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="text-center space-y-2">
-                      <div className="text-2xl font-bold text-primary">{stats.totalTreatments}</div>
+                      <div className="text-xl font-semibold text-primary">{stats.totalTreatments}</div>
                       <div className="text-sm text-muted-foreground">Total Treatments</div>
                     </div>
                     <div className="text-center space-y-2">
-                      <div className="text-2xl font-bold text-primary">₱{stats.totalAmountPaid.toFixed(2)}</div>
+                      <div className="text-xl font-semibold text-primary">₱{stats.totalAmountPaid.toFixed(2)}</div>
                       <div className="text-sm text-muted-foreground">Total Paid</div>
                     </div>
                     <div className="text-center space-y-2">
-                      <div className="text-2xl font-bold text-primary">{stats.upcomingAppointments}</div>
+                      <div className="text-xl font-semibold text-primary">{stats.upcomingAppointments}</div>
                       <div className="text-sm text-muted-foreground">Upcoming Appointments</div>
                     </div>
                   </div>

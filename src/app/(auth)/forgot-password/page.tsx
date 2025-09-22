@@ -85,7 +85,7 @@ export default function ForgotPasswordPage() {
               </div>
             </div>
             <div className="space-y-2 text-center">
-              <CardTitle className="text-2xl font-semibold">Check your email</CardTitle>
+              <CardTitle className="text-xl font-semibold">Check your email</CardTitle>
               <CardDescription className="text-base text-muted-foreground">
                 We&apos;ve sent password reset instructions to your email
               </CardDescription>
@@ -131,7 +131,7 @@ export default function ForgotPasswordPage() {
             </div>
           </div>
           <div className="space-y-2 text-center">
-            <CardTitle className="text-2xl font-semibold">Reset password</CardTitle>
+            <CardTitle className="text-xl font-semibold">Reset password</CardTitle>
             <CardDescription className="text-base text-muted-foreground">
               Enter your email and we&apos;ll send you reset instructions
             </CardDescription>

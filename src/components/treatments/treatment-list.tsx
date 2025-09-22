@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
-import { Search, Filter, Calendar, RefreshCw, AlertCircle, FileText, User, Clock, DollarSign, Eye, Receipt } from 'lucide-react'
+import { Search, Filter, Calendar, RefreshCw, AlertCircle, FileText, User, Clock, Receipt, Eye, CreditCard } from 'lucide-react'
 import { format, subDays, addDays } from 'date-fns'
 import { formatCurrency } from '@/lib/utils/cost-calculations'
 
@@ -52,6 +52,7 @@ interface Treatment {
   treatment_date: string
   total_cost: number
   payment_status: 'pending' | 'partial' | 'paid'
+  treatment_status?: 'scheduled' | 'completed' | 'cancelled'
   notes?: string
   created_at: string
   updated_at: string
@@ -80,7 +81,8 @@ export default function TreatmentList({
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>('all')
-  const [dateRange, setDateRange] = useState<string>('month')
+  const [treatmentStatusFilter, setTreatmentStatusFilter] = useState<string>('all')
+  const [dateRange, setDateRange] = useState<string>('all')
 
   const fetchTreatments = useCallback(async () => {
     setLoading(true)
@@ -96,21 +98,31 @@ export default function TreatmentList({
           startDate = format(today, 'yyyy-MM-dd')
           endDate = format(today, 'yyyy-MM-dd')
           break
+        case 'upcoming':
+          startDate = format(today, 'yyyy-MM-dd')
+          endDate = format(addDays(today, 90), 'yyyy-MM-dd') // Next 3 months
+          break
         case 'week':
           startDate = format(subDays(today, 7), 'yyyy-MM-dd')
-          endDate = format(today, 'yyyy-MM-dd')
+          endDate = format(addDays(today, 7), 'yyyy-MM-dd') // Past week + next week
           break
         case 'month':
           startDate = format(subDays(today, 30), 'yyyy-MM-dd')
+          endDate = format(addDays(today, 30), 'yyyy-MM-dd') // Past month + next month
+          break
+        case 'past_month':
+          startDate = format(subDays(today, 30), 'yyyy-MM-dd')
           endDate = format(today, 'yyyy-MM-dd')
           break
-        case 'quarter':
+        case 'past_quarter':
           startDate = format(subDays(today, 90), 'yyyy-MM-dd')
           endDate = format(today, 'yyyy-MM-dd')
           break
-        case 'year':
+        case 'all':
+        default:
+          // Show all treatments (past 1 year to future 1 year)
           startDate = format(subDays(today, 365), 'yyyy-MM-dd')
-          endDate = format(today, 'yyyy-MM-dd')
+          endDate = format(addDays(today, 365), 'yyyy-MM-dd')
           break
       }
 
@@ -118,9 +130,12 @@ export default function TreatmentList({
       if (startDate) params.append('start_date', startDate)
       if (endDate) params.append('end_date', endDate)
       if (paymentStatusFilter !== 'all') params.append('payment_status', paymentStatusFilter)
-      params.append('limit', '100')
+      if (treatmentStatusFilter !== 'all') params.append('treatment_status', treatmentStatusFilter)
+      params.append('limit', '200') // Increased to show more treatments
 
-      const response = await fetch(`/api/treatments?${params.toString()}`)
+      const response = await fetch(`/api/treatments?${params.toString()}`, {
+        credentials: 'include'
+      })
 
       if (!response.ok) {
         throw new Error('Failed to fetch treatments')
@@ -133,28 +148,84 @@ export default function TreatmentList({
     } finally {
       setLoading(false)
     }
-  }, [paymentStatusFilter, dateRange])
+  }, [paymentStatusFilter, treatmentStatusFilter, dateRange])
 
   useEffect(() => {
     fetchTreatments()
   }, [fetchTreatments, refreshTrigger])
 
-  const filteredTreatments = treatments.filter(treatment => {
-    if (!searchTerm) return true
+  const sortedAndFilteredTreatments = treatments
+    .filter(treatment => {
+    const today = new Date()
+    const tDate = new Date(treatment.treatment_date)
+    const isToday = format(tDate, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd')
+    const isFuture = tDate > today
+    const isPast = tDate < today
 
-    const searchLower = searchTerm.toLowerCase()
-    const patientName = `${treatment.patients.first_name} ${treatment.patients.last_name}`.toLowerCase()
-    const patientId = treatment.patients.patient_id.toLowerCase()
-    const notes = treatment.notes?.toLowerCase() || ''
-    const procedures = treatment.treatment_procedures.map(tp => tp.procedures.name.toLowerCase()).join(' ')
+    // Filter by treatment status
+    if (treatmentStatusFilter !== 'all') {
+      switch (treatmentStatusFilter) {
+        case 'upcoming':
+          if (!isFuture) return false
+          break
+        case 'completed':
+          if (!isPast) return false
+          break
+        case 'today':
+          if (!isToday) return false
+          break
+      }
+    }
 
-    return (
-      patientName.includes(searchLower) ||
-      patientId.includes(searchLower) ||
-      notes.includes(searchLower) ||
-      procedures.includes(searchLower)
-    )
-  })
+    // Search filter
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase()
+      const patientName = `${treatment.patients.first_name} ${treatment.patients.last_name}`.toLowerCase()
+      const patientId = treatment.patients.patient_id.toLowerCase()
+      const notes = treatment.notes?.toLowerCase() || ''
+      const procedures = treatment.treatment_procedures.map(tp => tp.procedures.name.toLowerCase()).join(' ')
+
+      if (!(
+        patientName.includes(searchLower) ||
+        patientId.includes(searchLower) ||
+        notes.includes(searchLower) ||
+        procedures.includes(searchLower)
+      )) {
+        return false
+      }
+    }
+
+    return true
+    })
+    .sort((a, b) => {
+      const today = new Date()
+      const dateA = new Date(a.treatment_date)
+      const dateB = new Date(b.treatment_date)
+
+      const isToday_A = format(dateA, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd')
+      const isToday_B = format(dateB, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd')
+      const isFuture_A = dateA > today
+      const isFuture_B = dateB > today
+
+      // Priority order: Today -> Future (ascending) -> Past (descending)
+
+      // Both today
+      if (isToday_A && isToday_B) return 0
+
+      // One is today, prioritize today
+      if (isToday_A && !isToday_B) return -1
+      if (!isToday_A && isToday_B) return 1
+
+      // Both future, sort ascending (earliest first)
+      if (isFuture_A && isFuture_B) return dateA.getTime() - dateB.getTime()
+
+      // One future, one past - future comes first
+      if (isFuture_A && !isFuture_B) return -1
+      if (!isFuture_A && isFuture_B) return 1
+
+      // Both past, sort descending (most recent first)
+      return dateB.getTime() - dateA.getTime()
+    })
 
   const refreshData = () => {
     fetchTreatments()
@@ -163,10 +234,12 @@ export default function TreatmentList({
   const getDateRangeLabel = () => {
     switch (dateRange) {
       case 'today': return 'Today'
-      case 'week': return 'Last 7 days'
-      case 'month': return 'Last 30 days'
-      case 'quarter': return 'Last 3 months'
-      case 'year': return 'Last year'
+      case 'upcoming': return 'Upcoming (Next 3 months)'
+      case 'week': return 'This week (±7 days)'
+      case 'month': return 'This month (±30 days)'
+      case 'past_month': return 'Past 30 days'
+      case 'past_quarter': return 'Past 3 months'
+      case 'all': return 'All treatments'
       default: return 'All'
     }
   }
@@ -184,33 +257,106 @@ export default function TreatmentList({
     }
   }
 
+  const getTreatmentStatusBadge = (treatmentDate: string, treatmentStatus?: string) => {
+    const today = new Date()
+    const tDate = new Date(treatmentDate)
+    const isPast = tDate < today
+    const isToday = format(tDate, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd')
+    const isFuture = tDate > today
+
+    // Use explicit status if available, otherwise infer from date
+    if (treatmentStatus) {
+      switch (treatmentStatus) {
+        case 'completed':
+          return <Badge variant="default">Completed</Badge>
+        case 'scheduled':
+          return <Badge variant="secondary">Scheduled</Badge>
+        case 'cancelled':
+          return <Badge variant="destructive">Cancelled</Badge>
+        default:
+          return <Badge variant="outline">{treatmentStatus}</Badge>
+      }
+    }
+
+    // Infer status from date if no explicit status
+    if (isToday) {
+      return <Badge variant="default">Today</Badge>
+    } else if (isFuture) {
+      return <Badge variant="secondary">Scheduled</Badge>
+    } else {
+      return <Badge variant="outline">Completed</Badge>
+    }
+  }
+
+  const getTreatmentDateStyle = (treatmentDate: string) => {
+    const today = new Date()
+    const tDate = new Date(treatmentDate)
+    const isToday = format(tDate, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd')
+    const isFuture = tDate > today
+    const isOverdue = tDate < today && format(tDate, 'yyyy-MM-dd') !== format(today, 'yyyy-MM-dd')
+
+    if (isToday) return 'text-primary font-semibold'
+    if (isFuture) return 'text-primary'
+    if (isOverdue) return 'text-muted-foreground'
+    return ''
+  }
+
   const getStatusCounts = () => {
-    return filteredTreatments.reduce((acc, treatment) => {
+    const today = new Date()
+
+    return sortedAndFilteredTreatments.reduce((acc, treatment) => {
+      // Payment status counts
       acc[treatment.payment_status] = (acc[treatment.payment_status] || 0) + 1
+
+      // Treatment timing counts
+      const tDate = new Date(treatment.treatment_date)
+      const isToday = format(tDate, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd')
+      const isFuture = tDate > today
+      const isPast = tDate < today
+
+      if (isToday) {
+        acc.today = (acc.today || 0) + 1
+      } else if (isFuture) {
+        acc.upcoming = (acc.upcoming || 0) + 1
+      } else if (isPast) {
+        acc.completed = (acc.completed || 0) + 1
+      }
+
       return acc
     }, {} as Record<string, number>)
   }
 
   const getTotalRevenue = () => {
-    return filteredTreatments
+    const totalValue = sortedAndFilteredTreatments.reduce((total, treatment) => total + treatment.total_cost, 0)
+    const paidRevenue = sortedAndFilteredTreatments
       .filter(t => t.payment_status === 'paid')
       .reduce((total, treatment) => total + treatment.total_cost, 0)
+    const partialRevenue = sortedAndFilteredTreatments
+      .filter(t => t.payment_status === 'partial')
+      .reduce((total, treatment) => total + (treatment.total_cost * 0.5), 0) // Assume 50% for partial
+
+    return {
+      totalValue,
+      paidRevenue,
+      partialRevenue,
+      collectedRevenue: paidRevenue + partialRevenue
+    }
   }
 
   const statusCounts = getStatusCounts()
-  const totalRevenue = getTotalRevenue()
+  const revenueData = getTotalRevenue()
 
   return (
     <Card className={className}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-3 text-base font-semibold">
+              <FileText className="h-4 w-4" />
               Treatment History
             </CardTitle>
             <CardDescription>
-              {getDateRangeLabel()} • {filteredTreatments.length} treatments
+              {getDateRangeLabel()} • {sortedAndFilteredTreatments.length} treatments
             </CardDescription>
           </div>
           <Button
@@ -234,10 +380,23 @@ export default function TreatmentList({
             />
           </div>
 
-          <Select value={paymentStatusFilter} onValueChange={setPaymentStatusFilter}>
-            <SelectTrigger className="w-full sm:w-[180px]">
+          <Select value={treatmentStatusFilter} onValueChange={setTreatmentStatusFilter}>
+            <SelectTrigger className="w-full sm:w-[150px]">
               <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Filter by payment" />
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="upcoming">Upcoming</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="today">Today</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={paymentStatusFilter} onValueChange={setPaymentStatusFilter}>
+            <SelectTrigger className="w-full sm:w-[140px]">
+              <CreditCard className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Payment" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Payments</SelectItem>
@@ -253,30 +412,36 @@ export default function TreatmentList({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="all">All Dates</SelectItem>
               <SelectItem value="today">Today</SelectItem>
-              <SelectItem value="week">Last 7 days</SelectItem>
-              <SelectItem value="month">Last 30 days</SelectItem>
-              <SelectItem value="quarter">Last 3 months</SelectItem>
-              <SelectItem value="year">Last year</SelectItem>
+              <SelectItem value="upcoming">Upcoming</SelectItem>
+              <SelectItem value="week">This Week</SelectItem>
+              <SelectItem value="month">This Month</SelectItem>
+              <SelectItem value="past_month">Past Month</SelectItem>
+              <SelectItem value="past_quarter">Past Quarter</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        {filteredTreatments.length > 0 && (
-          <div className="flex flex-wrap gap-2 pt-2">
-            <Badge variant="secondary">
-              <DollarSign className="h-3 w-3 mr-1" />
-              Revenue: {formatCurrency(totalRevenue)}
-            </Badge>
-            <Badge variant="secondary">
-              {statusCounts.paid || 0} Paid
-            </Badge>
-            <Badge variant="outline">
-              {statusCounts.partial || 0} Partial
-            </Badge>
-            <Badge variant="outline">
-              {statusCounts.pending || 0} Pending
-            </Badge>
+        {sortedAndFilteredTreatments.length > 0 && (
+          <div className="space-y-3 pt-4">
+            {/* Revenue Summary */}
+            <div className="space-y-2">
+              <h4 className="text-sm font-semibold text-muted-foreground">Financial Summary</h4>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="default">
+                  <CreditCard className="h-4 w-4 mr-1" />
+                  Total Value: {formatCurrency(revenueData.totalValue)}
+                </Badge>
+                <Badge variant="secondary">
+                  Collected: {formatCurrency(revenueData.collectedRevenue)}
+                </Badge>
+                <Badge variant="outline">
+                  Outstanding: {formatCurrency(revenueData.totalValue - revenueData.collectedRevenue)}
+                </Badge>
+              </div>
+            </div>
+
           </div>
         )}
       </CardHeader>
@@ -303,19 +468,19 @@ export default function TreatmentList({
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
-        ) : filteredTreatments.length === 0 ? (
+        ) : sortedAndFilteredTreatments.length === 0 ? (
           <div className="text-center py-8">
-            <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No treatments found</h3>
+            <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-base font-semibold mb-2">No treatments found</h3>
             <p className="text-muted-foreground">
-              {searchTerm || paymentStatusFilter !== 'all'
+              {searchTerm || paymentStatusFilter !== 'all' || treatmentStatusFilter !== 'all'
                 ? 'Try adjusting your search or filters.'
                 : 'No treatments recorded for the selected time period.'}
             </p>
           </div>
         ) : (
           <Accordion type="single" collapsible className="space-y-4">
-            {filteredTreatments.map((treatment) => (
+            {sortedAndFilteredTreatments.map((treatment) => (
               <AccordionItem
                 key={treatment.id}
                 value={treatment.id}
@@ -334,16 +499,19 @@ export default function TreatmentList({
                             {treatment.patients.patient_id}
                           </Badge>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                          <Calendar className="h-3 w-3" />
-                          <span>{format(new Date(treatment.treatment_date), 'PPP')}</span>
+                        <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
+                          <Calendar className="h-4 w-4" />
+                          <span className={getTreatmentDateStyle(treatment.treatment_date)}>
+                            {format(new Date(treatment.treatment_date), 'PPP')}
+                          </span>
                           <span>•</span>
                           <span>{treatment.treatment_procedures.length} procedures</span>
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="default" className="font-medium">
+                    <div className="flex items-center gap-3">
+                      {getTreatmentStatusBadge(treatment.treatment_date, treatment.treatment_status)}
+                      <Badge variant="default" className="font-semibold">
                         {formatCurrency(treatment.total_cost)}
                       </Badge>
                       {getPaymentStatusBadge(treatment.payment_status)}
@@ -354,9 +522,12 @@ export default function TreatmentList({
                   {/* Treatment Info */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <h4 className="font-medium text-sm">Treatment Details</h4>
+                      <h4 className="text-sm font-semibold">Treatment Details</h4>
                       <div className="text-sm text-muted-foreground space-y-1">
-                        <div>Date: {format(new Date(treatment.treatment_date), 'PPP')}</div>
+                        <div className={getTreatmentDateStyle(treatment.treatment_date)}>
+                          Date: {format(new Date(treatment.treatment_date), 'PPP')}
+                          {getTreatmentStatusBadge(treatment.treatment_date, treatment.treatment_status)}
+                        </div>
                         {treatment.appointments && (
                           <div>
                             Appointment: {format(new Date(treatment.appointments.appointment_date), 'PPP')}
@@ -369,7 +540,7 @@ export default function TreatmentList({
                     </div>
                     {treatment.notes && (
                       <div className="space-y-2">
-                        <h4 className="font-medium text-sm">Notes</h4>
+                        <h4 className="text-sm font-semibold">Notes</h4>
                         <p className="text-sm text-muted-foreground">{treatment.notes}</p>
                       </div>
                     )}
@@ -377,12 +548,12 @@ export default function TreatmentList({
 
                   {/* Procedures */}
                   <div className="space-y-2">
-                    <h4 className="font-medium text-sm">Procedures Performed</h4>
+                    <h4 className="text-sm font-semibold">Procedures Performed</h4>
                     <div className="space-y-2">
                       {treatment.treatment_procedures.map((tp) => (
                         <div key={tp.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-md">
                           <div className="space-y-1">
-                            <div className="font-medium text-sm">{tp.procedures.name}</div>
+                            <div className="text-sm font-semibold">{tp.procedures.name}</div>
                             <div className="text-xs text-muted-foreground">
                               Quantity: {tp.quantity} × {formatCurrency(tp.cost_per_unit)}
                               {tp.tooth_number && ` • Tooth: ${tp.tooth_number}`}
@@ -400,7 +571,7 @@ export default function TreatmentList({
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-2 pt-2 border-t">
+                  <div className="flex items-center gap-3 pt-2 border-t">
                     {onViewDetails && (
                       <Button
                         variant="outline"

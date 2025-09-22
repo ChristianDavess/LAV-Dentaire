@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Users, Calendar, TrendingUp, Activity, Clock, DollarSign, Plus, ArrowUp, ArrowDown, Minus, AlertTriangle, Loader2 } from 'lucide-react'
+import { Users, Calendar, TrendingUp, Activity, Clock, Banknote, Plus, ArrowUp, ArrowDown, Minus, AlertTriangle, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 
 interface DashboardStats {
@@ -129,7 +129,7 @@ export default function DashboardPage() {
                       ) : (
                         <>
                           <div className="space-y-2">
-                            <div className="text-3xl font-bold tracking-tight">
+                            <div className="text-xl font-semibold tracking-tight">
                               {stats?.totalPatients || 0}
                             </div>
                             <div className="flex items-center gap-2">
@@ -212,7 +212,7 @@ export default function DashboardPage() {
                       ) : (
                         <>
                           <div className="space-y-2">
-                            <div className="text-3xl font-bold tracking-tight">
+                            <div className="text-xl font-semibold tracking-tight">
                               {stats?.todayAppointments || 0}
                             </div>
                             <div className="flex items-center gap-2">
@@ -268,7 +268,7 @@ export default function DashboardPage() {
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                       <CardTitle className="text-sm font-semibold tracking-tight">Monthly Revenue</CardTitle>
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/20 text-accent-foreground group-hover:bg-accent/30 transition-colors duration-300">
-                        <DollarSign className="h-5 w-5" />
+                        <Banknote className="h-4 w-4" />
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -292,14 +292,14 @@ export default function DashboardPage() {
                       ) : (
                         <>
                           <div className="space-y-2">
-                            <div className="text-3xl font-bold tracking-tight">
+                            <div className="text-xl font-semibold tracking-tight">
                               ₱{(stats?.monthlyRevenue || 0).toFixed(2)}
                             </div>
                             <div className="flex items-center gap-2">
                               <Badge variant={stats?.monthlyRevenue ? "default" : "secondary"} className="text-xs font-medium">
                                 {stats?.monthlyRevenue ? (
                                   <>
-                                    <DollarSign className="mr-1 h-3 w-3" />
+                                    <Banknote className="mr-1 h-4 w-4" />
                                     Earning
                                   </>
                                 ) : (
@@ -378,7 +378,7 @@ export default function DashboardPage() {
                       ) : (
                         <>
                           <div className="space-y-2">
-                            <div className="text-3xl font-bold tracking-tight">
+                            <div className="text-xl font-semibold tracking-tight">
                               {stats?.activeProcedures || 0}
                             </div>
                             <div className="flex items-center gap-2">
@@ -480,6 +480,48 @@ export default function DashboardPage() {
                         <span className="text-sm font-semibold tracking-tight">Phase 3: Patient Management</span>
                         <div className="text-xs text-muted-foreground">Patient records and registration</div>
                       </div>
+                      <Badge variant="default" className="bg-green-100 text-green-800 border-green-200 hover:bg-green-100">
+                        <Activity className="mr-1 h-3 w-3" />
+                        Complete
+                      </Badge>
+                    </div>
+                    <Progress value={100} className="h-3 bg-muted/30" />
+                  </div>
+
+                  <div className="relative">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="space-y-1">
+                        <span className="text-sm font-semibold tracking-tight">Phase 4: Appointment System</span>
+                        <div className="text-xs text-muted-foreground">Calendar and appointment booking</div>
+                      </div>
+                      <Badge variant="default" className="bg-green-100 text-green-800 border-green-200 hover:bg-green-100">
+                        <Activity className="mr-1 h-3 w-3" />
+                        Complete
+                      </Badge>
+                    </div>
+                    <Progress value={100} className="h-3 bg-muted/30" />
+                  </div>
+
+                  <div className="relative">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="space-y-1">
+                        <span className="text-sm font-semibold tracking-tight">Phase 5: Treatment & Procedures</span>
+                        <div className="text-xs text-muted-foreground">Treatment records and procedure management</div>
+                      </div>
+                      <Badge variant="default" className="bg-green-100 text-green-800 border-green-200 hover:bg-green-100">
+                        <Activity className="mr-1 h-3 w-3" />
+                        Complete
+                      </Badge>
+                    </div>
+                    <Progress value={100} className="h-3 bg-muted/30" />
+                  </div>
+
+                  <div className="relative">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="space-y-1">
+                        <span className="text-sm font-semibold tracking-tight">Phase 6: QR Registration</span>
+                        <div className="text-xs text-muted-foreground">QR-based patient registration system</div>
+                      </div>
                       <Badge variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50">
                         <Clock className="mr-1 h-3 w-3" />
                         Next Phase
@@ -515,19 +557,19 @@ export default function DashboardPage() {
                       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
                         <Activity className="h-4 w-4" />
                       </div>
-                      <span className="text-sm font-medium">Dashboard Layout</span>
+                      <span className="text-sm font-medium">Patient Management</span>
                     </div>
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
                       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
                         <Activity className="h-4 w-4" />
                       </div>
-                      <span className="text-sm font-medium">Responsive Navigation</span>
+                      <span className="text-sm font-medium">Appointment System</span>
                     </div>
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
                       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
                         <Activity className="h-4 w-4" />
                       </div>
-                      <span className="text-sm font-medium">Notifications System</span>
+                      <span className="text-sm font-medium">Treatment & Procedures</span>
                     </div>
                   </div>
                 </div>
@@ -548,7 +590,10 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-3">
-                  <div className="group flex items-center justify-between p-4 rounded-xl border border-dashed border-muted-foreground/30 hover:border-primary/40 hover:bg-primary/5 transition-all duration-300 cursor-pointer">
+                  <div
+                    className="group flex items-center justify-between p-4 rounded-xl border border-dashed border-muted-foreground/30 hover:border-primary/40 hover:bg-primary/5 transition-all duration-300 cursor-pointer"
+                    onClick={() => router.push('/patients')}
+                  >
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/30 group-hover:bg-primary/10 text-muted-foreground group-hover:text-primary transition-all duration-300">
                         <Users className="h-5 w-5" />
@@ -558,10 +603,13 @@ export default function DashboardPage() {
                         <div className="text-xs text-muted-foreground">Register new patient</div>
                       </div>
                     </div>
-                    <Badge variant="secondary" className="text-xs">Phase 3</Badge>
+                    <Badge variant="default" className="text-xs bg-green-100 text-green-800 border-green-200">Available</Badge>
                   </div>
 
-                  <div className="group flex items-center justify-between p-4 rounded-xl border border-dashed border-muted-foreground/30 hover:border-primary/40 hover:bg-primary/5 transition-all duration-300 cursor-pointer">
+                  <div
+                    className="group flex items-center justify-between p-4 rounded-xl border border-dashed border-muted-foreground/30 hover:border-primary/40 hover:bg-primary/5 transition-all duration-300 cursor-pointer"
+                    onClick={() => router.push('/appointments')}
+                  >
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/30 group-hover:bg-primary/10 text-muted-foreground group-hover:text-primary transition-all duration-300">
                         <Calendar className="h-5 w-5" />
@@ -571,10 +619,13 @@ export default function DashboardPage() {
                         <div className="text-xs text-muted-foreground">Book patient visit</div>
                       </div>
                     </div>
-                    <Badge variant="secondary" className="text-xs">Phase 4</Badge>
+                    <Badge variant="default" className="text-xs bg-green-100 text-green-800 border-green-200">Available</Badge>
                   </div>
 
-                  <div className="group flex items-center justify-between p-4 rounded-xl border border-dashed border-muted-foreground/30 hover:border-primary/40 hover:bg-primary/5 transition-all duration-300 cursor-pointer">
+                  <div
+                    className="group flex items-center justify-between p-4 rounded-xl border border-dashed border-muted-foreground/30 hover:border-primary/40 hover:bg-primary/5 transition-all duration-300 cursor-pointer"
+                    onClick={() => router.push('/treatments')}
+                  >
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/30 group-hover:bg-primary/10 text-muted-foreground group-hover:text-primary transition-all duration-300">
                         <Image
@@ -590,7 +641,7 @@ export default function DashboardPage() {
                         <div className="text-xs text-muted-foreground">Record treatment</div>
                       </div>
                     </div>
-                    <Badge variant="secondary" className="text-xs">Phase 5</Badge>
+                    <Badge variant="default" className="text-xs bg-green-100 text-green-800 border-green-200">Available</Badge>
                   </div>
                 </div>
 
@@ -603,13 +654,13 @@ export default function DashboardPage() {
                       <div className="flex h-6 w-6 items-center justify-center rounded bg-muted/40 text-muted-foreground">
                         <Plus className="h-3 w-3" />
                       </div>
-                      <span className="text-xs text-muted-foreground">Analytics Dashboard</span>
+                      <span className="text-xs text-muted-foreground">QR Registration System</span>
                     </div>
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/20">
                       <div className="flex h-6 w-6 items-center justify-center rounded bg-muted/40 text-muted-foreground">
                         <Plus className="h-3 w-3" />
                       </div>
-                      <span className="text-xs text-muted-foreground">QR Registration</span>
+                      <span className="text-xs text-muted-foreground">Advanced Analytics</span>
                     </div>
                   </div>
                 </div>

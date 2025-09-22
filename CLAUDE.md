@@ -295,3 +295,5 @@ hsl(var(--destructive))
 - DEVELOPMENT-PLAN.md
 - CLAUDE.md
 - DEVELOPMENT-PLAN.md
+- CLAUDE.md
+- DEVELOPMENT-PLAN.md

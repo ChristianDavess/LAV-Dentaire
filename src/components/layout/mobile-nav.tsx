@@ -17,7 +17,7 @@ export function MobileNav() {
           size="icon"
           className="md:hidden hover:bg-muted/50 hover:scale-105 transition-all duration-300 rounded-lg"
         >
-          <Menu className={`h-5 w-5 transition-transform duration-300 ${open ? 'rotate-90' : ''}`} />
+          <Menu className={`h-4 w-4 transition-transform duration-300 ${open ? 'rotate-90' : ''}`} />
           <span className="sr-only">Toggle navigation menu</span>
         </Button>
       </SheetTrigger>

@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
-import { Search, Filter, Plus, AlertCircle, RefreshCw, Edit, Trash2, Stethoscope, Clock, DollarSign, Eye, EyeOff } from 'lucide-react'
+import { Search, Filter, Plus, AlertCircle, RefreshCw, Edit, Trash2, Stethoscope, Clock, CreditCard, Eye, EyeOff } from 'lucide-react'
 import ProcedureForm from './procedure-form'
 import { useToast } from '@/hooks/use-toast'
 
@@ -51,7 +51,9 @@ export default function ProcedureList({ className }: ProcedureListProps) {
       if (activeFilter !== 'all') params.append('is_active', activeFilter)
       params.append('limit', '100')
 
-      const response = await fetch(`/api/procedures?${params.toString()}`)
+      const response = await fetch(`/api/procedures?${params.toString()}`, {
+        credentials: 'include'
+      })
 
       if (!response.ok) {
         throw new Error('Failed to fetch procedures')
@@ -96,6 +98,7 @@ export default function ProcedureList({ className }: ProcedureListProps) {
     try {
       const response = await fetch(`/api/procedures/${procedure.id}`, {
         method: 'DELETE',
+        credentials: 'include'
       })
 
       const data = await response.json()
@@ -307,7 +310,7 @@ export default function ProcedureList({ className }: ProcedureListProps) {
                         <AlertDialogHeader>
                           <AlertDialogTitle>Delete Procedure</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Are you sure you want to delete "{procedure.name}"?
+                            Are you sure you want to delete &quot;{procedure.name}&quot;?
                             This action cannot be undone. If this procedure is used in treatments, deletion may fail.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
@@ -327,7 +330,7 @@ export default function ProcedureList({ className }: ProcedureListProps) {
 
                 <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
-                    <DollarSign className="h-4 w-4" />
+                    <CreditCard className="h-4 w-4" />
                     <span>{formatCurrency(procedure.default_cost)}</span>
                   </div>
                   <div className="flex items-center gap-1">

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { User, Calendar, Clock, DollarSign, FileText, Receipt, Edit, Stethoscope, Phone, Mail } from 'lucide-react'
+import { User, Calendar, Clock, CreditCard, FileText, Receipt, Edit, Stethoscope, Phone, Mail } from 'lucide-react'
 import { format } from 'date-fns'
 import { formatCurrency } from '@/lib/utils/cost-calculations'
 
@@ -142,8 +142,8 @@ export default function TreatmentDetails({
                 </div>
                 <div className="text-right space-y-2">
                   <div className="flex items-center gap-2">
-                    <DollarSign className="h-5 w-5" />
-                    <span className="text-2xl font-bold">
+                    <CreditCard className="h-4 w-4" />
+                    <span className="text-xl font-semibold">
                       {formatCurrency(treatment.total_cost)}
                     </span>
                   </div>
@@ -299,7 +299,7 @@ export default function TreatmentDetails({
 
               <div className="flex justify-between items-center">
                 <span className="text-lg font-semibold">Total Treatment Cost:</span>
-                <span className="text-2xl font-bold text-primary">
+                <span className="text-xl font-semibold text-primary">
                   {formatCurrency(treatment.total_cost)}
                 </span>
               </div>

@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { CalendarIcon, User, AlertCircle, Loader2, Plus, Minus, DollarSign } from 'lucide-react'
+import { CalendarIcon, User, AlertCircle, Loader2, Plus, Minus, CreditCard, Search, UserPlus, Phone, Clock } from 'lucide-react'
 import ProcedureSelector from './procedure-selector'
 import { format } from 'date-fns'
 
@@ -22,7 +22,10 @@ const treatmentSchema = z.object({
   patient_id: z.string().min(1, 'Please select a patient'),
   appointment_id: z.string().optional(),
   treatment_date: z.string().min(1, 'Please select a date'),
-  payment_status: z.enum(['pending', 'partial', 'paid']),
+  payment_status: z.enum(['pending', 'partial', 'paid'], {
+    required_error: 'Please select a payment status',
+    invalid_type_error: 'Please select a valid payment status'
+  }).default('pending'),
   notes: z.string().optional(),
   procedures: z.array(z.object({
     procedure_id: z.string(),
@@ -89,16 +92,20 @@ interface TreatmentFormProps {
 }
 
 export default function TreatmentForm({ treatment, onSubmit, onCancel }: TreatmentFormProps) {
+  console.log('TreatmentForm props:', { treatment, hasOnSubmit: !!onSubmit })
+  console.log('Treatment procedures:', treatment?.treatment_procedures)
+
   const [patients, setPatients] = useState<Patient[]>([])
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [procedures, setProcedures] = useState<Procedure[]>([])
   const [loadingPatients, setLoadingPatients] = useState(false)
   const [loadingAppointments, setLoadingAppointments] = useState(false)
+  const [patientSearchQuery, setPatientSearchQuery] = useState('')
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     treatment ? new Date(treatment.treatment_date) : undefined
   )
   const [selectedProcedures, setSelectedProcedures] = useState<TreatmentProcedure[]>(
-    treatment?.treatment_procedures.map(tp => ({
+    treatment?.treatment_procedures?.map(tp => ({
       procedure_id: tp.procedure_id,
       procedure: tp.procedures,
       quantity: tp.quantity,
@@ -116,11 +123,46 @@ export default function TreatmentForm({ treatment, onSubmit, onCancel }: Treatme
       treatment_date: treatment?.treatment_date || '',
       payment_status: treatment?.payment_status || 'pending',
       notes: treatment?.notes || '',
-      procedures: selectedProcedures
+      procedures: []
     }
   })
 
   const selectedPatientId = form.watch('patient_id')
+
+  // Filter patients based on search query
+  const filteredPatients = patients.filter(patient => {
+    if (!patientSearchQuery) return true
+    const searchLower = patientSearchQuery.toLowerCase()
+    const fullName = `${patient.first_name || ''} ${patient.last_name || ''}`.toLowerCase()
+    const patientId = patient.patient_id.toLowerCase()
+    const phone = patient.phone?.toLowerCase() || ''
+    return fullName.includes(searchLower) || patientId.includes(searchLower) || phone.includes(searchLower)
+  })
+
+  // Sort patients: recent treatments first, then alphabetically
+  const sortedPatients = [...filteredPatients].sort((a, b) => {
+    // For now, sort alphabetically. In future, we could add last treatment date sorting
+    const nameA = `${a.first_name || ''} ${a.last_name || ''}`.toLowerCase()
+    const nameB = `${b.first_name || ''} ${b.last_name || ''}`.toLowerCase()
+    return nameA.localeCompare(nameB)
+  })
+
+  // Get recent patients (first 3) and remaining patients
+  const recentPatients = sortedPatients.slice(0, 3)
+  const otherPatients = sortedPatients.slice(3)
+
+  // Get selected patient for display
+  const selectedPatient = patients.find(p => p.id === selectedPatientId)
+
+  // Highlight matching text in patient names
+  const highlightMatch = (text: string, query: string) => {
+    if (!query) return text
+    const regex = new RegExp(`(${query})`, 'gi')
+    const parts = text.split(regex)
+    return parts.map((part, index) =>
+      regex.test(part) ? `**${part}**` : part
+    ).join('')
+  }
 
   useEffect(() => {
     fetchPatients()
@@ -134,19 +176,36 @@ export default function TreatmentForm({ treatment, onSubmit, onCancel }: Treatme
   }, [selectedPatientId])
 
   useEffect(() => {
-    form.setValue('procedures', selectedProcedures)
+    // Map selectedProcedures to match the schema exactly
+    const proceduresForForm = selectedProcedures.map(proc => ({
+      procedure_id: proc.procedure_id,
+      quantity: Number(proc.quantity) || 1,
+      cost_per_unit: Number(proc.cost_per_unit) || 0,
+      tooth_number: proc.tooth_number && proc.tooth_number.trim() !== '' ? proc.tooth_number.trim() : undefined,
+      notes: proc.notes && proc.notes.trim() !== '' ? proc.notes.trim() : undefined
+    }))
+    console.log('Setting procedures in form:', proceduresForForm)
+    form.setValue('procedures', proceduresForForm)
+    // Trigger validation for procedures field after setting the value
+    form.trigger('procedures')
   }, [selectedProcedures, form])
 
   const fetchPatients = async () => {
     setLoadingPatients(true)
     try {
-      const response = await fetch('/api/patients')
+      const response = await fetch('/api/patients', {
+        credentials: 'include'
+      })
       if (response.ok) {
         const data = await response.json()
         setPatients(data.patients || [])
+      } else {
+        console.error('Failed to fetch patients:', response.status, response.statusText)
+        setPatients([])
       }
     } catch (error) {
       console.error('Error fetching patients:', error)
+      setPatients([])
     } finally {
       setLoadingPatients(false)
     }
@@ -155,13 +214,19 @@ export default function TreatmentForm({ treatment, onSubmit, onCancel }: Treatme
   const fetchPatientAppointments = async (patientId: string) => {
     setLoadingAppointments(true)
     try {
-      const response = await fetch(`/api/appointments?patient_id=${patientId}&status=scheduled`)
+      const response = await fetch(`/api/appointments?patient_id=${patientId}&status=scheduled`, {
+        credentials: 'include'
+      })
       if (response.ok) {
         const data = await response.json()
         setAppointments(data.appointments || [])
+      } else {
+        console.error('Failed to fetch appointments:', response.status, response.statusText)
+        setAppointments([])
       }
     } catch (error) {
       console.error('Error fetching appointments:', error)
+      setAppointments([])
     } finally {
       setLoadingAppointments(false)
     }
@@ -169,13 +234,19 @@ export default function TreatmentForm({ treatment, onSubmit, onCancel }: Treatme
 
   const fetchProcedures = async () => {
     try {
-      const response = await fetch('/api/procedures?is_active=true')
+      const response = await fetch('/api/procedures?is_active=true', {
+        credentials: 'include'
+      })
       if (response.ok) {
         const data = await response.json()
         setProcedures(data.procedures || [])
+      } else {
+        console.error('Failed to fetch procedures:', response.status, response.statusText)
+        setProcedures([])
       }
     } catch (error) {
       console.error('Error fetching procedures:', error)
+      setProcedures([])
     }
   }
 
@@ -197,7 +268,26 @@ export default function TreatmentForm({ treatment, onSubmit, onCancel }: Treatme
   }
 
   const handleSubmit = (data: TreatmentFormData) => {
-    onSubmit(data)
+    console.log('Form submitted with data:', data)
+    console.log('Form errors:', form.formState.errors)
+    console.log('Selected procedures:', selectedProcedures)
+    console.log('Form isValid:', form.formState.isValid)
+    console.log('Procedures validation:', data.procedures)
+
+    // Validate that all procedures have valid data
+    const hasValidProcedures = data.procedures.every(proc =>
+      proc.procedure_id &&
+      typeof proc.quantity === 'number' && proc.quantity > 0 &&
+      typeof proc.cost_per_unit === 'number' && proc.cost_per_unit >= 0
+    )
+
+    console.log('All procedures valid:', hasValidProcedures)
+
+    if (hasValidProcedures) {
+      onSubmit(data)
+    } else {
+      console.error('Invalid procedure data detected')
+    }
   }
 
   const totalCost = calculateTotalCost()
@@ -210,33 +300,185 @@ export default function TreatmentForm({ treatment, onSubmit, onCancel }: Treatme
           control={form.control}
           name="patient_id"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="space-y-3">
               <FormLabel className="text-base font-semibold">Patient</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={loadingPatients}>
-                <FormControl>
-                  <SelectTrigger
-                    aria-describedby="patient-description"
-                    aria-label={loadingPatients ? "Loading patients" : "Select a patient"}
-                  >
-                    <SelectValue placeholder={loadingPatients ? "Loading patients..." : "Select a patient"} />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {patients.map((patient) => (
-                    <SelectItem key={patient.id} value={patient.id}>
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        <span>{patient.first_name} {patient.last_name}</span>
+
+              {/* Selected Patient Display */}
+              {selectedPatient && (
+                <div className="flex items-center justify-between p-3 bg-primary/5 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                      <User className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium">
+                          {selectedPatient.first_name} {selectedPatient.last_name}
+                        </span>
                         <Badge variant="outline" className="text-xs">
-                          {patient.patient_id}
+                          {selectedPatient.patient_id}
                         </Badge>
                       </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormDescription id="patient-description">
-                Select the patient for this treatment
+                      {selectedPatient.phone && (
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <Phone className="h-3 w-3" />
+                          {selectedPatient.phone}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      field.onChange('')
+                      setPatientSearchQuery('')
+                    }}
+                    className="text-muted-foreground hover:text-destructive"
+                  >
+                    <Search className="h-4 w-4" />
+                    Change
+                  </Button>
+                </div>
+              )}
+
+              {/* Search Input */}
+              {!selectedPatient && (
+                <div className="space-y-2">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Type to search patients by name, ID, or phone..."
+                      value={patientSearchQuery}
+                      onChange={(e) => setPatientSearchQuery(e.target.value)}
+                      className="pl-10 h-11"
+                      disabled={loadingPatients}
+                    />
+                    {loadingPatients && (
+                      <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                    )}
+                  </div>
+
+                  {/* Inline Search Results */}
+                  {(patientSearchQuery || (!selectedPatient && !loadingPatients)) && (
+                    <Card className="border shadow-sm">
+                      <CardContent className="p-0">
+                        {filteredPatients.length > 0 ? (
+                          <div className="space-y-1 max-h-80 overflow-y-auto">
+                            {/* Recent Patients Section */}
+                            {!patientSearchQuery && recentPatients.length > 0 && (
+                              <>
+                                <div className="px-3 py-2 text-xs font-medium text-muted-foreground bg-muted/30 border-b">
+                                  Recent Patients
+                                </div>
+                                {recentPatients.map((patient) => (
+                                  <div
+                                    key={`recent-${patient.id}`}
+                                    onClick={() => {
+                                      field.onChange(patient.id)
+                                      setPatientSearchQuery('')
+                                    }}
+                                    className="flex items-center gap-3 p-3 hover:bg-muted/50 cursor-pointer transition-colors border-l-2 border-l-primary/20"
+                                  >
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+                                      <User className="h-4 w-4 text-primary" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className="font-medium text-sm">
+                                          {patient.first_name} {patient.last_name}
+                                        </span>
+                                        <Badge variant="outline" className="text-xs">
+                                          {patient.patient_id}
+                                        </Badge>
+                                      </div>
+                                      {patient.phone && (
+                                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                          <Phone className="h-3 w-3" />
+                                          {patient.phone}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <Clock className="h-4 w-4 text-muted-foreground/60" />
+                                  </div>
+                                ))}
+                                {otherPatients.length > 0 && (
+                                  <div className="border-t border-muted/50"></div>
+                                )}
+                              </>
+                            )}
+
+                            {/* Main Results */}
+                            {(patientSearchQuery ? sortedPatients : otherPatients).length > 0 && (
+                              <>
+                                {!patientSearchQuery && otherPatients.length > 0 && (
+                                  <div className="px-3 py-2 text-xs font-medium text-muted-foreground bg-muted/30 border-b">
+                                    All Patients
+                                  </div>
+                                )}
+                                {patientSearchQuery && (
+                                  <div className="px-3 py-2 text-xs font-medium text-muted-foreground bg-muted/30 border-b">
+                                    Search Results ({sortedPatients.length})
+                                  </div>
+                                )}
+                                {(patientSearchQuery ? sortedPatients : otherPatients).slice(0, 8).map((patient) => (
+                                  <div
+                                    key={patient.id}
+                                    onClick={() => {
+                                      field.onChange(patient.id)
+                                      setPatientSearchQuery('')
+                                    }}
+                                    className="flex items-center gap-3 p-3 hover:bg-muted/50 cursor-pointer transition-colors"
+                                  >
+                                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary/50">
+                                      <User className="h-4 w-4" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className="font-medium text-sm">
+                                          {patient.first_name} {patient.last_name}
+                                        </span>
+                                        <Badge variant="outline" className="text-xs">
+                                          {patient.patient_id}
+                                        </Badge>
+                                      </div>
+                                      {patient.phone && (
+                                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                          <Phone className="h-3 w-3" />
+                                          {patient.phone}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="p-6 text-center">
+                            <User className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                            <h3 className="text-sm font-semibold mb-2">No patients found</h3>
+                            <p className="text-xs text-muted-foreground mb-4">
+                              {patientSearchQuery
+                                ? `No patients match "${patientSearchQuery}"`
+                                : "No patients available"
+                              }
+                            </p>
+                            <Button variant="outline" size="sm" className="text-xs">
+                              <UserPlus className="h-3 w-3 mr-1" />
+                              Add New Patient
+                            </Button>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              )}
+
+              <FormDescription>
+                {selectedPatient ? 'Patient selected' : 'Search for a patient by name, patient ID, or phone number'}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -338,7 +580,7 @@ export default function TreatmentForm({ treatment, onSubmit, onCancel }: Treatme
           <div className="flex items-center justify-between">
             <FormLabel className="text-base font-semibold">Procedures</FormLabel>
             <Badge variant="secondary" className="text-sm">
-              <DollarSign className="h-3 w-3 mr-1" />
+              <CreditCard className="h-4 w-4 mr-1" />
               Total: ₱{totalCost.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
             </Badge>
           </div>
@@ -351,13 +593,11 @@ export default function TreatmentForm({ treatment, onSubmit, onCancel }: Treatme
               />
             </CardContent>
           </Card>
-          <FormField
-            control={form.control}
-            name="procedures"
-            render={() => (
-              <FormMessage />
-            )}
-          />
+          {form.formState.errors.procedures && (
+            <p className="text-sm font-medium text-destructive">
+              {form.formState.errors.procedures.message}
+            </p>
+          )}
         </div>
 
         {/* Payment Status */}
@@ -367,7 +607,7 @@ export default function TreatmentForm({ treatment, onSubmit, onCancel }: Treatme
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-base font-semibold">Payment Status</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value || 'pending'}>
                 <FormControl>
                   <SelectTrigger aria-describedby="payment-description">
                     <SelectValue placeholder="Select payment status" />

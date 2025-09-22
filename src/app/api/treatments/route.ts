@@ -7,16 +7,28 @@ import { z } from 'zod'
 // Schema for creating treatment with procedures
 const createTreatmentSchema = z.object({
   patient_id: z.string().uuid('Invalid patient ID'),
-  appointment_id: z.string().uuid('Invalid appointment ID').optional(),
+  appointment_id: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? undefined : val),
+    z.string().uuid('Invalid appointment ID').optional()
+  ),
   treatment_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD format'),
   payment_status: z.enum(['pending', 'partial', 'paid']).default('pending'),
-  notes: z.string().optional(),
+  notes: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? undefined : val),
+    z.string().optional()
+  ),
   procedures: z.array(z.object({
     procedure_id: z.string().uuid('Invalid procedure ID'),
     quantity: z.number().min(1, 'Quantity must be at least 1'),
     cost_per_unit: z.number().min(0, 'Cost must be positive'),
-    tooth_number: z.string().optional(),
-    notes: z.string().optional()
+    tooth_number: z.preprocess(
+      (val) => (val === '' || val === null || val === undefined ? undefined : val),
+      z.string().optional()
+    ),
+    notes: z.preprocess(
+      (val) => (val === '' || val === null || val === undefined ? undefined : val),
+      z.string().optional()
+    )
   })).min(1, 'At least one procedure is required')
 })
 
@@ -127,6 +139,7 @@ export async function GET(request: NextRequest) {
 
 // POST /api/treatments - Create treatment with procedures
 export async function POST(request: NextRequest) {
+  let body: any
   try {
     const token = request.cookies.get('auth-token')?.value
     if (!token) {
@@ -138,7 +151,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
     }
 
-    const body = await request.json()
+    body = await request.json()
+    console.log('Received treatment data:', JSON.stringify(body, null, 2))
     const validatedData = createTreatmentSchema.parse(body)
 
     const supabase = await createClient()
@@ -289,6 +303,8 @@ export async function POST(request: NextRequest) {
     }, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
+      console.error('Validation error details:', error.issues)
+      console.error('Received body:', body)
       return NextResponse.json(
         { error: 'Validation error', details: error.issues },
         { status: 400 }

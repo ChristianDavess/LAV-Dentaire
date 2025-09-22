@@ -87,7 +87,13 @@ export default function TreatmentsPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create treatment')
+        let errorMessage = 'Failed to create treatment'
+        if (data.error) {
+          errorMessage = data.error
+        } else if (data.details && Array.isArray(data.details)) {
+          errorMessage = data.details.map((detail: any) => detail.message).join(', ')
+        }
+        throw new Error(errorMessage)
       }
 
       toast({
@@ -122,7 +128,13 @@ export default function TreatmentsPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to update treatment')
+        let errorMessage = 'Failed to update treatment'
+        if (data.error) {
+          errorMessage = data.error
+        } else if (data.details && Array.isArray(data.details)) {
+          errorMessage = data.details.map((detail: any) => detail.message).join(', ')
+        }
+        throw new Error(errorMessage)
       }
 
       toast({

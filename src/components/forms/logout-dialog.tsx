@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { LogOut, Loader2 } from 'lucide-react'
-import { useToast } from '@/lib/use-toast'
+import { useToast } from '@/hooks/use-toast'
 
 interface LogoutDialogProps {
   children: React.ReactNode
@@ -65,8 +65,8 @@ export function LogoutDialog({ children }: LogoutDialogProps) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <LogOut className="h-5 w-5 text-destructive" />
+          <DialogTitle className="flex items-center gap-3 text-lg font-semibold">
+            <LogOut className="h-4 w-4 text-destructive" />
             Confirm Logout
           </DialogTitle>
           <DialogDescription>

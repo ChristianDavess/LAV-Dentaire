@@ -176,7 +176,7 @@ export default function AppointmentsPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 h-full flex flex-col">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold mb-2">Appointments</h1>
@@ -210,7 +210,7 @@ export default function AppointmentsPage() {
         </Dialog>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
         <TabsList>
           <TabsTrigger value="list" className="flex items-center gap-2">
             <List className="h-4 w-4" />

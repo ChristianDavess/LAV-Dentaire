@@ -89,7 +89,9 @@ export default function AppointmentList({
       if (statusFilter !== 'all') params.append('status', statusFilter)
       params.append('limit', '100')
 
-      const response = await fetch(`/api/appointments?${params.toString()}`)
+      const response = await fetch(`/api/appointments?${params.toString()}`, {
+        credentials: 'include'
+      })
 
       if (!response.ok) {
         throw new Error('Failed to fetch appointments')
@@ -220,10 +222,6 @@ export default function AppointmentList({
 
         {appointments.length > 0 && (
           <div className="flex flex-wrap gap-2 pt-2">
-            <Badge variant="secondary">
-              <Users className="h-3 w-3 mr-1" />
-              {statusCounts.scheduled || 0} Scheduled
-            </Badge>
             <Badge variant="secondary">
               {statusCounts.completed || 0} Completed
             </Badge>

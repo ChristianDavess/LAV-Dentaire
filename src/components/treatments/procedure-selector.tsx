@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Label } from '@/components/ui/label'
-import { Plus, Minus, Trash2, DollarSign, Hash, FileText } from 'lucide-react'
+import { Plus, Minus, Trash2, CreditCard, Hash, FileText } from 'lucide-react'
 
 interface Procedure {
   id: string
@@ -77,8 +77,12 @@ export default function ProcedureSelector({
 
   const handleUpdateProcedure = (index: number, field: keyof TreatmentProcedure, value: any) => {
     const updated = [...selectedProcedures]
-    if (field === 'quantity' || field === 'cost_per_unit') {
-      updated[index][field] = Number(value)
+    if (field === 'quantity') {
+      const numValue = parseInt(value)
+      updated[index][field] = isNaN(numValue) || numValue < 1 ? 1 : numValue
+    } else if (field === 'cost_per_unit') {
+      const numValue = parseFloat(value)
+      updated[index][field] = isNaN(numValue) || numValue < 0 ? 0 : numValue
     } else {
       updated[index][field] = value
     }
@@ -197,7 +201,14 @@ export default function ProcedureSelector({
                       type="number"
                       min="1"
                       value={selectedProcedure.quantity}
-                      onChange={(e) => handleUpdateProcedure(index, 'quantity', Math.max(1, parseInt(e.target.value) || 1))}
+                      onChange={(e) => {
+                        const value = e.target.value
+                        if (value === '') {
+                          handleUpdateProcedure(index, 'quantity', 1)
+                        } else {
+                          handleUpdateProcedure(index, 'quantity', value)
+                        }
+                      }}
                       className="text-center w-20"
                     />
                     <Button
@@ -214,7 +225,7 @@ export default function ProcedureSelector({
                 {/* Cost per Unit */}
                 <div className="space-y-2">
                   <Label className="text-sm font-medium flex items-center gap-1">
-                    <DollarSign className="h-3 w-3" />
+                    <CreditCard className="h-4 w-4" />
                     Cost per Unit (₱)
                   </Label>
                   <Input
@@ -222,7 +233,14 @@ export default function ProcedureSelector({
                     step="0.01"
                     min="0"
                     value={selectedProcedure.cost_per_unit}
-                    onChange={(e) => handleUpdateProcedure(index, 'cost_per_unit', parseFloat(e.target.value) || 0)}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      if (value === '') {
+                        handleUpdateProcedure(index, 'cost_per_unit', 0)
+                      } else {
+                        handleUpdateProcedure(index, 'cost_per_unit', value)
+                      }
+                    }}
                     placeholder="0.00"
                   />
                 </div>

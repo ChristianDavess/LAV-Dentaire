@@ -142,7 +142,7 @@ export default function ResetPasswordPage() {
               </div>
             </div>
             <div className="space-y-2 text-center">
-              <CardTitle className="text-2xl font-semibold">Password updated</CardTitle>
+              <CardTitle className="text-xl font-semibold">Password updated</CardTitle>
               <CardDescription className="text-base text-muted-foreground">
                 Your password has been successfully updated
               </CardDescription>
@@ -188,7 +188,7 @@ export default function ResetPasswordPage() {
               </div>
             </div>
             <div className="space-y-2 text-center">
-              <CardTitle className="text-2xl font-semibold">Reset link expired</CardTitle>
+              <CardTitle className="text-xl font-semibold">Reset link expired</CardTitle>
               <CardDescription className="text-base text-muted-foreground">
                 This password reset link is invalid or has expired
               </CardDescription>
@@ -243,7 +243,7 @@ export default function ResetPasswordPage() {
             </div>
           </div>
           <div className="space-y-2 text-center">
-            <CardTitle className="text-2xl font-semibold">Set new password</CardTitle>
+            <CardTitle className="text-xl font-semibold">Set new password</CardTitle>
             <CardDescription className="text-base text-muted-foreground">
               Enter a new password for {userEmail}
             </CardDescription>
