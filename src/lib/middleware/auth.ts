@@ -5,7 +5,8 @@ import { ApiError } from '@/types/api'
 // Authentication middleware for API routes
 export async function withAuth(
   request: NextRequest,
-  handler: (request: NextRequest, user: any) => Promise<NextResponse>
+  handler: (request: NextRequest, user: any, ...args: any[]) => Promise<NextResponse>,
+  ...args: any[]
 ): Promise<NextResponse> {
   try {
     const token = request.cookies.get('auth-token')?.value
@@ -27,7 +28,7 @@ export async function withAuth(
     }
 
     // Call the actual handler with the authenticated user
-    return await handler(request, user)
+    return await handler(request, user, ...args)
   } catch (error) {
     console.error('Authentication middleware error:', error)
     return NextResponse.json(
@@ -40,7 +41,8 @@ export async function withAuth(
 // Optional authentication middleware (allows unauthenticated access)
 export async function withOptionalAuth(
   request: NextRequest,
-  handler: (request: NextRequest, user?: any) => Promise<NextResponse>
+  handler: (request: NextRequest, user?: any, ...args: any[]) => Promise<NextResponse>,
+  ...args: any[]
 ): Promise<NextResponse> {
   try {
     const token = request.cookies.get('auth-token')?.value
@@ -51,10 +53,10 @@ export async function withOptionalAuth(
     }
 
     // Call the handler with user (which might be null)
-    return await handler(request, user)
+    return await handler(request, user, ...args)
   } catch (error) {
     console.error('Optional authentication middleware error:', error)
     // In case of auth error, proceed without user
-    return await handler(request, null)
+    return await handler(request, null, ...args)
   }
 }

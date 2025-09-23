@@ -69,6 +69,7 @@ export interface Database {
           emergency_contact_phone: string | null
           medical_history: Record<string, any>
           notes: string | null
+          registration_source: string | null
           created_at: string
           updated_at: string
         }
@@ -87,6 +88,7 @@ export interface Database {
           emergency_contact_phone?: string | null
           medical_history?: Record<string, any>
           notes?: string | null
+          registration_source?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -105,6 +107,7 @@ export interface Database {
           emergency_contact_phone?: string | null
           medical_history?: Record<string, any>
           notes?: string | null
+          registration_source?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -255,6 +258,9 @@ export interface Database {
           token: string
           expires_at: string
           used: boolean
+          reusable: boolean
+          qr_type: string
+          usage_count: number
           created_at: string
         }
         Insert: {
@@ -262,6 +268,9 @@ export interface Database {
           token: string
           expires_at: string
           used?: boolean
+          reusable?: boolean
+          qr_type?: string
+          usage_count?: number
           created_at?: string
         }
         Update: {
@@ -269,6 +278,9 @@ export interface Database {
           token?: string
           expires_at?: string
           used?: boolean
+          reusable?: boolean
+          qr_type?: string
+          usage_count?: number
           created_at?: string
         }
       }
@@ -337,4 +349,18 @@ export interface TreatmentWithDetails extends Treatment {
   patients?: Patient
   appointment?: Appointment
   treatment_procedures?: (TreatmentProcedure & { procedure?: Procedure })[]
+}
+
+// QR Registration System Types
+export type QRType = 'generic' | 'reusable' | 'single-use'
+export type RegistrationSource = 'qr-generic' | 'qr-token' | 'manual' | 'admin'
+
+export type QRTokenInsert = Database['public']['Tables']['qr_registration_tokens']['Insert'] & {
+  qr_type: QRType
+}
+
+export interface QRTokenWithStats extends QRRegistrationToken {
+  registration_count?: number
+  is_expired?: boolean
+  time_until_expiry?: string
 }
