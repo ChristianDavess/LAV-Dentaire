@@ -63,7 +63,7 @@ export default function TreatmentDetails({
             Treatment Details
           </DialogTitle>
           <DialogDescription>
-            Complete treatment information for {treatment.patient?.first_name} {treatment.patient?.last_name}
+            Complete treatment information for {treatment.patients?.first_name} {treatment.patients?.last_name}
           </DialogDescription>
         </DialogHeader>
 
@@ -76,9 +76,9 @@ export default function TreatmentDetails({
                   <div className="flex items-center gap-2">
                     <User className="h-5 w-5 text-primary" />
                     <h3 className="text-lg font-semibold">
-                      {treatment.patient?.first_name} {treatment.patient?.last_name}
+                      {treatment.patients?.first_name} {treatment.patients?.last_name}
                     </h3>
-                    <Badge variant="outline">{treatment.patient?.patient_id}</Badge>
+                    <Badge variant="outline">{treatment.patients?.patient_id}</Badge>
                   </div>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
@@ -115,27 +115,27 @@ export default function TreatmentDetails({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm font-medium text-muted-foreground">Full Name</div>
-                  <div>{treatment.patient?.first_name} {treatment.patient?.last_name}</div>
+                  <div>{treatment.patients?.first_name} {treatment.patients?.last_name}</div>
                 </div>
                 <div>
                   <div className="text-sm font-medium text-muted-foreground">Patient ID</div>
-                  <div>{treatment.patient?.patient_id}</div>
+                  <div>{treatment.patients?.patient_id}</div>
                 </div>
-                {treatment.patient?.phone && (
+                {treatment.patients?.phone && (
                   <div>
                     <div className="text-sm font-medium text-muted-foreground">Phone</div>
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4" />
-                      {treatment.patient?.phone}
+                      {treatment.patients?.phone}
                     </div>
                   </div>
                 )}
-                {treatment.patient?.email && (
+                {treatment.patients?.email && (
                   <div>
                     <div className="text-sm font-medium text-muted-foreground">Email</div>
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4" />
-                      {treatment.patient?.email}
+                      {treatment.patients?.email}
                     </div>
                   </div>
                 )}

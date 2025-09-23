@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { createApiHandler, createSuccessResponse, ApiErrorClass } from '@/lib/middleware'
 import { procedureSchema } from '@/lib/validations'
 import { z } from 'zod'
@@ -17,10 +17,14 @@ const getProceduresQuerySchema = z.object({
 // GET /api/procedures - List procedures with filtering and search
 export const GET = createApiHandler()
   .requireAuth()
-  .validateQuery(getProceduresQuerySchema)
-  .handle(async (request: NextRequest, user: any, queryParams: z.infer<typeof getProceduresQuerySchema>) => {
-    const supabase = await createClient()
-    const { search, is_active, limit, offset, sort_by, sort_order } = queryParams
+  .handle(async (request: NextRequest, user: any) => {
+    const supabase = createServiceClient()
+
+    // Parse and validate query parameters manually
+    const url = new URL(request.url)
+    const queryParams = Object.fromEntries(url.searchParams.entries())
+    const validatedQuery = getProceduresQuerySchema.parse(queryParams)
+    const { search, is_active, limit, offset, sort_by, sort_order } = validatedQuery
 
     let query = supabase
       .from('procedures')
@@ -59,7 +63,7 @@ export const POST = createApiHandler()
   .requireAuth()
   .validateBody(procedureSchema)
   .handle(async (request: NextRequest, user: any, validatedData: z.infer<typeof procedureSchema>) => {
-    const supabase = await createClient()
+    const supabase = createServiceClient()
 
     try {
       // Check if procedure with same name already exists

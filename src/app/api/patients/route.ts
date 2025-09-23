@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { createApiHandler, createSuccessResponse, ApiErrorClass } from '@/lib/middleware'
 import { patientSchema } from '@/lib/validations'
 import { z } from 'zod'
@@ -41,10 +41,14 @@ async function generatePatientId(supabase: any): Promise<string> {
 // GET /api/patients - List patients with filtering and pagination
 export const GET = createApiHandler()
   .requireAuth()
-  .validateQuery(getPatientsQuerySchema)
-  .handle(async (request: NextRequest, user: any, queryParams: z.infer<typeof getPatientsQuerySchema>) => {
-    const supabase = await createClient()
-    const { search, limit, offset, sort_by, sort_order } = queryParams
+  .handle(async (request: NextRequest, user: any) => {
+    const supabase = createServiceClient()
+
+    // Parse and validate query parameters manually
+    const url = new URL(request.url)
+    const queryParams = Object.fromEntries(url.searchParams.entries())
+    const validatedQuery = getPatientsQuerySchema.parse(queryParams)
+    const { search, limit, offset, sort_by, sort_order } = validatedQuery
 
     let query = supabase
       .from('patients')
@@ -80,7 +84,7 @@ export const POST = createApiHandler()
   .requireAuth()
   .validateBody(patientSchema)
   .handle(async (request: NextRequest, user: any, patientData: z.infer<typeof patientSchema>) => {
-    const supabase = await createClient()
+    const supabase = createServiceClient()
 
     try {
       // Generate auto-incremented patient ID

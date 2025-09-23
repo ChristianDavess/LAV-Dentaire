@@ -36,6 +36,7 @@ export default function TreatmentsPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(treatmentData),
       })
 
@@ -193,7 +194,7 @@ export default function TreatmentsPage() {
           <DialogHeader>
             <DialogTitle>Edit Treatment</DialogTitle>
             <DialogDescription>
-              Update treatment details for {editingTreatment?.patient?.first_name} {editingTreatment?.patient?.last_name}
+              Update treatment details for {editingTreatment?.patients?.first_name} {editingTreatment?.patients?.last_name}
             </DialogDescription>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto">

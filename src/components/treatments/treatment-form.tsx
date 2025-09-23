@@ -154,7 +154,7 @@ export default function TreatmentForm({ treatment, onSubmit, onCancel }: Treatme
       })
       if (response.ok) {
         const data = await response.json()
-        setPatients(data.patients || [])
+        setPatients(data.data?.patients || [])
       } else {
         console.error('Failed to fetch patients:', response.status, response.statusText)
         setPatients([])
@@ -195,7 +195,7 @@ export default function TreatmentForm({ treatment, onSubmit, onCancel }: Treatme
       })
       if (response.ok) {
         const data = await response.json()
-        setProcedures(data.procedures || [])
+        setProcedures(data.data?.procedures || [])
       } else {
         console.error('Failed to fetch procedures:', response.status, response.statusText)
         setProcedures([])

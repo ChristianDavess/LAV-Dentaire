@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { createApiHandler, createSuccessResponse, ApiErrorClass } from '@/lib/middleware'
 import { z } from 'zod'
 
@@ -69,10 +69,14 @@ async function checkAppointmentConflict(
 // GET /api/appointments - List appointments with filtering
 export const GET = createApiHandler()
   .requireAuth()
-  .validateQuery(getAppointmentsQuerySchema)
-  .handle(async (request: NextRequest, user: any, queryParams: z.infer<typeof getAppointmentsQuerySchema>) => {
-    const supabase = await createClient()
-    const { start_date, end_date, status, patient_id, limit, offset } = queryParams
+  .handle(async (request: NextRequest, user: any) => {
+    const supabase = createServiceClient()
+
+    // Parse and validate query parameters manually
+    const url = new URL(request.url)
+    const queryParams = Object.fromEntries(url.searchParams.entries())
+    const validatedQuery = getAppointmentsQuerySchema.parse(queryParams)
+    const { start_date, end_date, status, patient_id, limit, offset } = validatedQuery
 
     let query = supabase
       .from('appointments')
@@ -120,7 +124,7 @@ export const POST = createApiHandler()
   .requireAuth()
   .validateBody(appointmentSchema)
   .handle(async (request: NextRequest, user: any, validatedData: z.infer<typeof appointmentSchema>) => {
-    const supabase = await createClient()
+    const supabase = createServiceClient()
 
     try {
       // Check if patient exists
