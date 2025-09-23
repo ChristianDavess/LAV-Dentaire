@@ -95,7 +95,7 @@ export default function DayView({
         key={timeSlot}
         className={`
           flex border-b border-muted/50 min-h-[100px]
-          ${hasAppointments ? 'bg-blue-50/30' : 'hover:bg-muted/20'}
+          ${hasAppointments ? 'bg-primary/5' : 'hover:bg-muted/20'}
           transition-colors duration-200
         `}
       >
@@ -184,16 +184,16 @@ export default function DayView({
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-3 text-sm">
                   <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-primary"></div>
                     <span className="text-muted-foreground">{statusCounts.scheduled} Scheduled</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-secondary"></div>
                     <span className="text-muted-foreground">{statusCounts.completed} Completed</span>
                   </div>
                   {statusCounts.cancelled > 0 && (
                     <div className="flex items-center gap-1">
-                      <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                      <div className="w-2 h-2 rounded-full bg-destructive"></div>
                       <span className="text-muted-foreground">{statusCounts.cancelled} Cancelled</span>
                     </div>
                   )}
@@ -209,7 +209,7 @@ export default function DayView({
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Clock className="h-5 w-5 text-primary" />
+                  <Clock className="h-4 w-4 text-primary" />
                 </div>
                 <div>
                   <p className="text-2xl font-semibold">{dayAppointments.length}</p>
@@ -222,8 +222,8 @@ export default function DayView({
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                  <Users className="h-5 w-5 text-purple-600" />
+                <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
+                  <Users className="h-4 w-4 text-accent-foreground" />
                 </div>
                 <div>
                   <p className="text-2xl font-semibold">{uniquePatients}</p>
@@ -236,8 +236,8 @@ export default function DayView({
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                  <CalendarDays className="h-5 w-5 text-green-600" />
+                <div className="w-10 h-10 rounded-lg bg-secondary/20 flex items-center justify-center">
+                  <CalendarDays className="h-4 w-4 text-secondary-foreground" />
                 </div>
                 <div>
                   <p className="text-2xl font-semibold">

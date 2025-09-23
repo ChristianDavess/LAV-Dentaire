@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { MedicalHistorySection } from './medical-history-section'
+import { Calendar22 } from '@/components/ui/calendar-22'
 import {
   Edit,
   User,
@@ -390,9 +391,17 @@ export function EditPatientForm({ patient, trigger, onSuccess }: EditPatientForm
                       name="date_of_birth"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Date of Birth</FormLabel>
                           <FormControl>
-                            <Input type="date" {...field} value={field.value || ''} />
+                            <Calendar22
+                              id="date_of_birth"
+                              label="Date of Birth"
+                              value={field.value ? new Date(field.value) : undefined}
+                              onChange={(date) => {
+                                field.onChange(date ? date.toISOString().split('T')[0] : '')
+                              }}
+                              placeholder="Select date of birth"
+                              className="w-full"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

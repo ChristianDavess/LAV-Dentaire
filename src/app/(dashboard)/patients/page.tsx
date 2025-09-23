@@ -15,6 +15,7 @@ import { PatientRegistrationForm } from '@/components/forms/patient-registration
 import { EditPatientForm } from '@/components/forms/edit-patient-form'
 import { DeletePatientDialog } from '@/components/forms/delete-patient-dialog'
 import { PatientProfileView } from '@/components/patient/patient-profile-view'
+import { QRGenerator } from '@/components/qr'
 import {
   Users,
   Plus,
@@ -30,7 +31,9 @@ import {
   Eye,
   Edit,
   Trash2,
-  Activity
+  Activity,
+  QrCode,
+  RefreshCw
 } from 'lucide-react'
 
 // Patient interface - matches database schema
@@ -49,6 +52,7 @@ interface Patient {
   emergency_contact_phone: string | null
   medical_history: Record<string, any>
   notes: string | null
+  registration_source: string | null
   created_at: string
   updated_at: string
 }
@@ -166,6 +170,7 @@ export default function PatientsPage() {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
+            <QRGenerator onSuccess={refreshPatients} />
             <PatientRegistrationForm onSuccess={refreshPatients} />
           </div>
         </div>
@@ -209,15 +214,27 @@ export default function PatientsPage() {
         {/* Patients Table */}
         <Card>
           <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Users className="h-4 w-4" />
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <Users className="h-4 w-4" />
+                  </div>
+                  Patient Registry
+                </CardTitle>
+                <CardDescription>
+                  Complete list of registered patients with their basic information
+                </CardDescription>
               </div>
-              Patient Registry
-            </CardTitle>
-            <CardDescription>
-              Complete list of registered patients with their basic information
-            </CardDescription>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={refreshPatients}
+                disabled={loading}
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {paginatedPatients.length === 0 ? (

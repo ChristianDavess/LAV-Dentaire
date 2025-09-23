@@ -18,7 +18,6 @@ import {
   getDay
 } from 'date-fns'
 import { Patient, Appointment } from '@/types'
-import AppointmentCard from '../appointment-card-v2'
 
 interface AppointmentWithPatient extends Appointment {
   patients: Patient
@@ -92,7 +91,7 @@ export default function MonthView({
         `}
         onClick={() => handleDateClick(date)}
       >
-        <CardContent className="p-2 h-full flex flex-col">
+        <CardContent className="p-3 h-full flex flex-col">
           {/* Day Header */}
           <div className="flex items-center justify-between mb-2">
             <span
@@ -116,7 +115,7 @@ export default function MonthView({
                       className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={(e) => handleNewAppointment(date, e)}
                     >
-                      <Plus className="h-3 w-3" />
+                      <Plus className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -127,50 +126,27 @@ export default function MonthView({
             )}
           </div>
 
-          {/* Appointments */}
-          <div className="flex-1 space-y-1 overflow-hidden">
-            {dayAppointments.slice(0, 2).map((appointment) => (
-              <div
-                key={appointment.id}
-                className="group"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <AppointmentCard
-                  appointment={appointment}
-                  size="sm"
-                  showActions={false}
-                  onClick={onAppointmentClick}
-                  onEdit={onAppointmentEdit}
-                  onStatusChange={onAppointmentStatusChange}
-                  className="border-0 shadow-none hover:shadow-sm"
-                />
-              </div>
-            ))}
-
-            {/* Show More Indicator */}
-            {dayAppointments.length > 2 && (
+          {/* Center appointment count when present */}
+          <div className="flex-1 flex items-center justify-center">
+            {hasAppointments && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-full justify-start p-1 text-xs text-muted-foreground hover:text-foreground"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleDateClick(date)
-                      }}
-                    >
-                      <MoreHorizontal className="h-3 w-3 mr-1" />
-                      +{dayAppointments.length - 2} more
-                    </Button>
+                    <div className="text-center cursor-pointer">
+                      <div className="text-lg font-semibold text-primary">
+                        {dayAppointments.length}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        appointment{dayAppointments.length !== 1 ? 's' : ''}
+                      </div>
+                    </div>
                   </TooltipTrigger>
                   <TooltipContent>
                     <div className="space-y-1">
                       <p className="font-medium">
                         {dayAppointments.length} appointment{dayAppointments.length !== 1 ? 's' : ''} on {format(date, 'MMM dd')}
                       </p>
-                      {dayAppointments.slice(2).map((appointment) => (
+                      {dayAppointments.map((appointment) => (
                         <p key={appointment.id} className="text-xs">
                           {format(new Date(`2000-01-01T${appointment.appointment_time}`), 'HH:mm')} - {appointment.patients.first_name} {appointment.patients.last_name}
                         </p>
@@ -182,17 +158,6 @@ export default function MonthView({
             )}
           </div>
 
-          {/* Appointment Count Badge */}
-          {hasAppointments && (
-            <div className="mt-1 flex justify-end">
-              <Badge
-                variant="secondary"
-                className="h-4 px-1 text-xs"
-              >
-                {dayAppointments.length}
-              </Badge>
-            </div>
-          )}
         </CardContent>
       </Card>
     )
@@ -200,9 +165,9 @@ export default function MonthView({
 
   return (
     <TooltipProvider>
-      <div className={`space-y-4 ${className}`}>
+      <div className={`space-y-6 ${className}`}>
         {/* Month Header */}
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-3">
           {weekDays.map((day) => (
             <div
               key={day}
@@ -214,7 +179,7 @@ export default function MonthView({
         </div>
 
         {/* Calendar Grid */}
-        <div className="grid grid-cols-7 gap-2 group">
+        <div className="grid grid-cols-7 gap-3 group">
           {calendarDays.map((date) => renderDayCell(date))}
         </div>
 
@@ -233,19 +198,19 @@ export default function MonthView({
               {/* Status Summary */}
               <div className="flex items-center gap-3 text-sm">
                 <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  <div className="w-2 h-2 rounded-full bg-primary"></div>
                   <span className="text-muted-foreground">
                     {appointments.filter(a => a.status === 'scheduled').length} Scheduled
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                  <div className="w-2 h-2 rounded-full bg-secondary"></div>
                   <span className="text-muted-foreground">
                     {appointments.filter(a => a.status === 'completed').length} Completed
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                  <div className="w-2 h-2 rounded-full bg-destructive"></div>
                   <span className="text-muted-foreground">
                     {appointments.filter(a => a.status === 'cancelled').length} Cancelled
                   </span>

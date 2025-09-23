@@ -19,6 +19,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { MedicalHistorySection } from './medical-history-section'
+import { Calendar22 } from '@/components/ui/calendar-22'
 import {
   UserPlus,
   User,
@@ -314,9 +315,17 @@ export function PatientRegistrationForm({ trigger, onSuccess }: PatientRegistrat
                       name="date_of_birth"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-semibold">Date of Birth</FormLabel>
                           <FormControl>
-                            <Input {...field} value={field.value || ''} type="date" />
+                            <Calendar22
+                              id="date_of_birth"
+                              label="Date of Birth"
+                              value={field.value ? new Date(field.value) : undefined}
+                              onChange={(date) => {
+                                field.onChange(date ? date.toISOString().split('T')[0] : '')
+                              }}
+                              placeholder="Select date of birth"
+                              className="w-full"
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

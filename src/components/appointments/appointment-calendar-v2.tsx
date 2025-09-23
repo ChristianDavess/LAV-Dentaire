@@ -42,6 +42,7 @@ export default function AppointmentCalendarV2({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [currentDate, setCurrentDate] = useState<Date>(selectedDate || new Date())
+
   const [currentView, setCurrentView] = useState<CalendarView>('month')
 
   const fetchAppointments = useCallback(async () => {
@@ -52,33 +53,45 @@ export default function AppointmentCalendarV2({
       let startDate: string
       let endDate: string
 
-      // Adjust date range based on current view
+      // Use appropriate date ranges based on current view
+      const today = new Date()
+
       switch (currentView) {
         case 'month':
-          startDate = format(startOfMonth(currentDate), 'yyyy-MM-dd')
-          endDate = format(endOfMonth(currentDate), 'yyyy-MM-dd')
+          // Fetch current month with buffer for edge cases
+          const monthStart = startOfMonth(currentDate)
+          const monthEnd = endOfMonth(currentDate)
+          monthStart.setDate(monthStart.getDate() - 7)
+          monthEnd.setDate(monthEnd.getDate() + 7)
+          startDate = format(monthStart, 'yyyy-MM-dd')
+          endDate = format(monthEnd, 'yyyy-MM-dd')
           break
         case 'week':
-          // For week view, get a wider range to account for week boundaries
+          // For week view, get wider range for week boundaries
           const weekStart = new Date(currentDate)
-          weekStart.setDate(currentDate.getDate() - 7)
+          weekStart.setDate(currentDate.getDate() - 14)
           const weekEnd = new Date(currentDate)
-          weekEnd.setDate(currentDate.getDate() + 7)
+          weekEnd.setDate(currentDate.getDate() + 14)
           startDate = format(weekStart, 'yyyy-MM-dd')
           endDate = format(weekEnd, 'yyyy-MM-dd')
           break
         case 'day':
-          // For day view, get a few days around the current date
+          // For day view, get broader range around current date
           const dayStart = new Date(currentDate)
-          dayStart.setDate(currentDate.getDate() - 1)
+          dayStart.setDate(currentDate.getDate() - 7)
           const dayEnd = new Date(currentDate)
-          dayEnd.setDate(currentDate.getDate() + 1)
+          dayEnd.setDate(currentDate.getDate() + 7)
           startDate = format(dayStart, 'yyyy-MM-dd')
           endDate = format(dayEnd, 'yyyy-MM-dd')
           break
         case 'agenda':
-          startDate = format(startOfMonth(currentDate), 'yyyy-MM-dd')
-          endDate = format(endOfMonth(currentDate), 'yyyy-MM-dd')
+          // For agenda, fetch comprehensive range
+          const agendaStart = new Date(today)
+          agendaStart.setDate(today.getDate() - 30)
+          const agendaEnd = new Date(today)
+          agendaEnd.setDate(today.getDate() + 90)
+          startDate = format(agendaStart, 'yyyy-MM-dd')
+          endDate = format(agendaEnd, 'yyyy-MM-dd')
           break
         default:
           startDate = format(startOfMonth(currentDate), 'yyyy-MM-dd')
@@ -88,7 +101,7 @@ export default function AppointmentCalendarV2({
       const params = new URLSearchParams({
         start_date: startDate,
         end_date: endDate,
-        limit: '500'
+        limit: '100'
       })
 
       const response = await fetch(`/api/appointments?${params.toString()}`, {
@@ -100,7 +113,8 @@ export default function AppointmentCalendarV2({
       }
 
       const data = await response.json()
-      setAppointments(data.appointments || [])
+      // Handle both nested (data.data.appointments) and direct (data.appointments) structures
+      setAppointments(data.data?.appointments || data.appointments || [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load appointments')
     } finally {
@@ -111,6 +125,7 @@ export default function AppointmentCalendarV2({
   useEffect(() => {
     fetchAppointments()
   }, [fetchAppointments, refreshTrigger])
+
 
   useEffect(() => {
     if (selectedDate) {
@@ -157,18 +172,7 @@ export default function AppointmentCalendarV2({
     }
   }
 
-  // Filter appointments based on current view if needed
-  const getFilteredAppointments = () => {
-    switch (currentView) {
-      case 'day':
-        const dayStr = format(currentDate, 'yyyy-MM-dd')
-        return appointments.filter(appointment => appointment.appointment_date === dayStr)
-      default:
-        return appointments
-    }
-  }
-
-  const filteredAppointments = getFilteredAppointments()
+  // Each view component handles its own appointment filtering based on dates
 
   if (loading) {
     return (
@@ -219,9 +223,10 @@ export default function AppointmentCalendarV2({
   }
 
   const renderCurrentView = () => {
+    // Use all appointments for all views - let each view handle its own filtering
     const commonProps = {
       currentDate,
-      appointments: filteredAppointments,
+      appointments: appointments,
       onAppointmentClick,
       onAppointmentEdit,
       onAppointmentStatusChange
@@ -240,7 +245,6 @@ export default function AppointmentCalendarV2({
         return (
           <WeekView
             {...commonProps}
-            appointments={appointments} // Use all appointments for week view
             onTimeSlotClick={handleTimeSlotClick}
           />
         )
@@ -255,7 +259,6 @@ export default function AppointmentCalendarV2({
         return (
           <AgendaView
             {...commonProps}
-            appointments={appointments} // Use all appointments for agenda view
           />
         )
       default:
@@ -277,7 +280,7 @@ export default function AppointmentCalendarV2({
         onDateChange={handleDateChange}
         currentView={currentView}
         onViewChange={handleViewChange}
-        appointmentCount={filteredAppointments.length}
+        appointmentCount={appointments.length}
         onTodayClick={handleTodayClick}
       />
 

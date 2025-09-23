@@ -2,8 +2,9 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Settings, Mail, Database, Shield } from 'lucide-react'
+import { Settings, Mail, Database, Shield, QrCode } from 'lucide-react'
 import ReminderSettings from '@/components/settings/reminder-settings'
+import { QRTokenList } from '@/components/qr'
 
 export default function SettingsPage() {
   return (
@@ -14,10 +15,14 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="reminders" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="reminders" className="flex items-center gap-2">
             <Mail className="h-4 w-4" />
             Reminders
+          </TabsTrigger>
+          <TabsTrigger value="qr-management" className="flex items-center gap-2">
+            <QrCode className="h-4 w-4" />
+            QR Codes
           </TabsTrigger>
           <TabsTrigger value="system" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
@@ -35,6 +40,10 @@ export default function SettingsPage() {
 
         <TabsContent value="reminders" className="space-y-6">
           <ReminderSettings />
+        </TabsContent>
+
+        <TabsContent value="qr-management" className="space-y-6">
+          <QRTokenList showHeader={false} />
         </TabsContent>
 
         <TabsContent value="system" className="space-y-6">
