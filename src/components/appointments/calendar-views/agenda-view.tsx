@@ -84,7 +84,7 @@ export default function AgendaView({
         {/* Date Header */}
         <div className="flex items-center justify-between sticky top-0 bg-background/95 backdrop-blur-sm z-10 py-2">
           <div className="flex items-center gap-3">
-            <CalendarDays className="h-5 w-5 text-primary" />
+            <CalendarDays className="h-4 w-4 text-primary" />
             <div>
               <h3 className={`text-base font-semibold ${isDateToday ? 'text-primary' : ''}`}>
                 {format(date, 'EEEE, MMMM dd')}
@@ -140,7 +140,7 @@ export default function AgendaView({
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <CalendarDays className="h-5 w-5 text-primary" />
+                <CalendarDays className="h-4 w-4 text-primary" />
               </div>
               <div>
                 <p className="text-2xl font-semibold">{totalAppointments}</p>
@@ -153,8 +153,8 @@ export default function AgendaView({
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
-                <Clock className="h-5 w-5 text-green-600" />
+              <div className="w-10 h-10 rounded-lg bg-secondary/20 flex items-center justify-center">
+                <Clock className="h-4 w-4 text-secondary-foreground" />
               </div>
               <div>
                 <p className="text-2xl font-semibold">{scheduledAppointments}</p>
@@ -167,8 +167,8 @@ export default function AgendaView({
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                <TrendingUp className="h-5 w-5 text-blue-600" />
+              <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                <TrendingUp className="h-4 w-4 text-primary-foreground" />
               </div>
               <div>
                 <p className="text-2xl font-semibold">{completedAppointments}</p>
@@ -181,8 +181,8 @@ export default function AgendaView({
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
-                <Users className="h-5 w-5 text-purple-600" />
+              <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
+                <Users className="h-4 w-4 text-accent-foreground" />
               </div>
               <div>
                 <p className="text-2xl font-semibold">{totalPatients}</p>

@@ -90,7 +90,7 @@ export default function WeekView({
           min-h-[80px] p-2 border-b border-r border-muted/50
           transition-colors duration-200 hover:bg-muted/30
           ${isDateToday ? 'bg-primary/5' : ''}
-          ${hasAppointments ? 'bg-blue-50/50' : ''}
+          ${hasAppointments ? 'bg-primary/5' : ''}
           cursor-pointer
         `}
         onClick={() => handleTimeSlotClick(date, timeSlot)}
@@ -126,7 +126,7 @@ export default function WeekView({
                       handleTimeSlotClick(date, timeSlot)
                     }}
                   >
-                    <Plus className="h-3 w-3" />
+                    <Plus className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -186,13 +186,13 @@ export default function WeekView({
               </div>
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  <div className="w-2 h-2 rounded-full bg-primary"></div>
                   <span className="text-sm text-muted-foreground">
                     {appointments.filter(a => a.status === 'scheduled').length} Scheduled
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                  <div className="w-2 h-2 rounded-full bg-secondary"></div>
                   <span className="text-sm text-muted-foreground">
                     {appointments.filter(a => a.status === 'completed').length} Completed
                   </span>
