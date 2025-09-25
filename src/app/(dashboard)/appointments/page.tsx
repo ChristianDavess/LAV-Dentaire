@@ -167,12 +167,13 @@ export default function AppointmentsPage() {
   }
 
   return (
-    <div className="p-6 h-full flex flex-col">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-semibold mb-2">Appointments</h1>
-          <p className="text-muted-foreground">Schedule and manage patient appointments</p>
-        </div>
+    <div className="flex-1 p-4 md:p-8 pt-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <h2 className="text-lg font-semibold">Appointments</h2>
+            <p className="text-sm text-muted-foreground">Schedule and manage patient appointments</p>
+          </div>
         <Dialog open={isNewAppointmentOpen} onOpenChange={setIsNewAppointmentOpen}>
           <DialogTrigger asChild>
             <Button disabled={isCreating}>
@@ -255,6 +256,7 @@ export default function AppointmentsPage() {
           </div>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   )
 }

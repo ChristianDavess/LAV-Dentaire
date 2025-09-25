@@ -72,7 +72,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <h2 className="text-lg font-semibold">Dashboard</h2>
-            <p className="text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Welcome to your dental clinic management system
             </p>
           </div>
@@ -105,7 +105,7 @@ export default function DashboardPage() {
                   <Card className="relative overflow-hidden border-0 shadow-sm hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-pointer group">
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                      <CardTitle className="text-sm font-semibold tracking-tight">Total Patients</CardTitle>
+                      <CardTitle className="text-base font-semibold">Total Patients</CardTitle>
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors duration-300">
                         <Users className="h-5 w-5" />
                       </div>
@@ -188,7 +188,7 @@ export default function DashboardPage() {
                   >
                     <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                      <CardTitle className="text-sm font-semibold tracking-tight">Today&apos;s Appointments</CardTitle>
+                      <CardTitle className="text-base font-semibold">Today&apos;s Appointments</CardTitle>
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/20 text-secondary-foreground group-hover:bg-secondary/30 transition-colors duration-300">
                         <Calendar className="h-5 w-5" />
                       </div>
@@ -268,7 +268,7 @@ export default function DashboardPage() {
                   <Card className="relative overflow-hidden border-0 shadow-sm hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-pointer group">
                     <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                      <CardTitle className="text-sm font-semibold tracking-tight">Monthly Revenue</CardTitle>
+                      <CardTitle className="text-base font-semibold">Monthly Revenue</CardTitle>
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/20 text-accent-foreground group-hover:bg-accent/30 transition-colors duration-300">
                         <Banknote className="h-4 w-4" />
                       </div>
@@ -348,14 +348,14 @@ export default function DashboardPage() {
                   <Card className="relative overflow-hidden border-0 shadow-sm hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-pointer group">
                     <div className="absolute inset-0 bg-gradient-to-br from-muted/5 to-muted/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                      <CardTitle className="text-sm font-semibold tracking-tight">Active Procedures</CardTitle>
+                      <CardTitle className="text-base font-semibold">Active Procedures</CardTitle>
                       <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted/20 text-muted-foreground group-hover:bg-muted/30 transition-colors duration-300">
                         <Image
-                          src="/lav-dentaire-logo.svg"
+                          src="/icon.svg"
                           alt="LAV Dentaire Logo"
-                          width={20}
-                          height={20}
-                          className="h-5 w-5"
+                          width={32}
+                          height={32}
+                          className="h-8 w-8"
                         />
                       </div>
                     </CardHeader>
@@ -454,7 +454,7 @@ export default function DashboardPage() {
                         <span className="text-sm font-semibold tracking-tight">Phase 1: Setup & Authentication</span>
                         <div className="text-xs text-muted-foreground">Project foundation and security</div>
                       </div>
-                      <Badge variant="default" className="bg-green-100 text-green-800 border-green-200 hover:bg-green-100">
+                      <Badge variant="default" className="bg-primary/10 text-primary hover:bg-primary/20">
                         <Activity className="mr-1 h-3 w-3" />
                         Complete
                       </Badge>
@@ -468,7 +468,7 @@ export default function DashboardPage() {
                         <span className="text-sm font-semibold tracking-tight">Phase 2: Core Layout & Navigation</span>
                         <div className="text-xs text-muted-foreground">Dashboard UI and navigation system</div>
                       </div>
-                      <Badge variant="default" className="bg-green-100 text-green-800 border-green-200 hover:bg-green-100">
+                      <Badge variant="default" className="bg-primary/10 text-primary hover:bg-primary/20">
                         <Activity className="mr-1 h-3 w-3" />
                         Complete
                       </Badge>
@@ -482,7 +482,7 @@ export default function DashboardPage() {
                         <span className="text-sm font-semibold tracking-tight">Phase 3: Patient Management</span>
                         <div className="text-xs text-muted-foreground">Patient records and registration</div>
                       </div>
-                      <Badge variant="default" className="bg-green-100 text-green-800 border-green-200 hover:bg-green-100">
+                      <Badge variant="default" className="bg-primary/10 text-primary hover:bg-primary/20">
                         <Activity className="mr-1 h-3 w-3" />
                         Complete
                       </Badge>
@@ -496,7 +496,7 @@ export default function DashboardPage() {
                         <span className="text-sm font-semibold tracking-tight">Phase 4: Appointment System</span>
                         <div className="text-xs text-muted-foreground">Calendar and appointment booking</div>
                       </div>
-                      <Badge variant="default" className="bg-green-100 text-green-800 border-green-200 hover:bg-green-100">
+                      <Badge variant="default" className="bg-primary/10 text-primary hover:bg-primary/20">
                         <Activity className="mr-1 h-3 w-3" />
                         Complete
                       </Badge>
@@ -510,7 +510,7 @@ export default function DashboardPage() {
                         <span className="text-sm font-semibold tracking-tight">Phase 5: Treatment & Procedures</span>
                         <div className="text-xs text-muted-foreground">Treatment records and procedure management</div>
                       </div>
-                      <Badge variant="default" className="bg-green-100 text-green-800 border-green-200 hover:bg-green-100">
+                      <Badge variant="default" className="bg-primary/10 text-primary hover:bg-primary/20">
                         <Activity className="mr-1 h-3 w-3" />
                         Complete
                       </Badge>
@@ -524,7 +524,7 @@ export default function DashboardPage() {
                         <span className="text-sm font-semibold tracking-tight">Phase 6: QR Registration</span>
                         <div className="text-xs text-muted-foreground">QR-based patient registration system</div>
                       </div>
-                      <Badge variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50">
+                      <Badge variant="outline">
                         <Clock className="mr-1 h-3 w-3" />
                         Next Phase
                       </Badge>
@@ -539,11 +539,11 @@ export default function DashboardPage() {
                   <h4 className="text-sm font-semibold flex items-center gap-3">
                     <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary/10 text-primary">
                       <Image
-                        src="/lav-dentaire-logo.svg"
+                        src="/icon.svg"
                         alt="LAV Dentaire Logo"
-                        width={12}
-                        height={12}
-                        className="h-3 w-3"
+                        width={20}
+                        height={20}
+                        className="h-5 w-5"
                       />
                     </div>
                     Features Available
@@ -605,7 +605,7 @@ export default function DashboardPage() {
                         <div className="text-xs text-muted-foreground">Register new patient</div>
                       </div>
                     </div>
-                    <Badge variant="default" className="text-xs bg-green-100 text-green-800 border-green-200">Available</Badge>
+                    <Badge variant="default" className="text-xs">Available</Badge>
                   </div>
 
                   <div
@@ -621,7 +621,7 @@ export default function DashboardPage() {
                         <div className="text-xs text-muted-foreground">Book patient visit</div>
                       </div>
                     </div>
-                    <Badge variant="default" className="text-xs bg-green-100 text-green-800 border-green-200">Available</Badge>
+                    <Badge variant="default" className="text-xs">Available</Badge>
                   </div>
 
                   <div
@@ -631,11 +631,11 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-3">
                       <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/30 group-hover:bg-primary/10 text-muted-foreground group-hover:text-primary transition-all duration-300">
                         <Image
-                          src="/lav-dentaire-logo.svg"
+                          src="/icon.svg"
                           alt="LAV Dentaire Logo"
-                          width={20}
-                          height={20}
-                          className="h-5 w-5"
+                          width={32}
+                          height={32}
+                          className="h-8 w-8"
                         />
                       </div>
                       <div className="space-y-1">
@@ -643,7 +643,7 @@ export default function DashboardPage() {
                         <div className="text-xs text-muted-foreground">Record treatment</div>
                       </div>
                     </div>
-                    <Badge variant="default" className="text-xs bg-green-100 text-green-800 border-green-200">Available</Badge>
+                    <Badge variant="default" className="text-xs">Available</Badge>
                   </div>
                 </div>
 

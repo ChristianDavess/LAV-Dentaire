@@ -198,7 +198,7 @@ export function QRTokenList({ showHeader = true }: QRTokenListProps) {
         <Card className="border-0 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10 text-red-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-destructive/10 text-destructive">
                 <XCircle className="h-5 w-5" />
               </div>
               <div>
@@ -412,9 +412,9 @@ export function QRTokenList({ showHeader = true }: QRTokenListProps) {
                                   <div>{new Date(token.expires_at).toLocaleDateString()}</div>
                                   <div className="flex items-center gap-1">
                                     {status === 'expired' ? (
-                                      <span className="text-red-600 font-medium">Expired</span>
+                                      <span className="text-destructive font-medium">Expired</span>
                                     ) : (
-                                      <span className="text-green-600 font-medium">{timeRemaining}</span>
+                                      <span className="text-primary font-medium">{timeRemaining}</span>
                                     )}
                                   </div>
                                 </>

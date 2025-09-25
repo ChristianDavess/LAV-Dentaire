@@ -162,13 +162,13 @@ export function QRViewerModal({ tokenId, open, onOpenChange }: QRViewerModalProp
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'active':
-        return { icon: Clock, color: 'text-green-600', bgColor: 'bg-green-50', label: 'Active' }
+        return { icon: Clock, color: 'text-primary', bgColor: 'bg-primary/10', label: 'Active' }
       case 'used':
-        return { icon: CheckCircle, color: 'text-blue-600', bgColor: 'bg-blue-50', label: 'Used' }
+        return { icon: CheckCircle, color: 'text-secondary-foreground', bgColor: 'bg-secondary/10', label: 'Used' }
       case 'expired':
-        return { icon: XCircle, color: 'text-red-600', bgColor: 'bg-red-50', label: 'Expired' }
+        return { icon: XCircle, color: 'text-destructive', bgColor: 'bg-destructive/10', label: 'Expired' }
       default:
-        return { icon: Clock, color: 'text-gray-600', bgColor: 'bg-gray-50', label: status }
+        return { icon: Clock, color: 'text-muted-foreground', bgColor: 'bg-muted/50', label: status }
     }
   }
 

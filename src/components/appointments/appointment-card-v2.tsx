@@ -39,40 +39,40 @@ const getStatusConfig = (status: Appointment['status']) => {
       return {
         variant: 'default' as const,
         icon: Clock,
-        color: 'text-blue-600',
-        bgColor: 'bg-blue-50 border-blue-200',
+        color: 'text-primary',
+        bgColor: 'bg-primary/10 border-primary/20',
         label: 'Scheduled'
       }
     case 'completed':
       return {
         variant: 'secondary' as const,
         icon: CheckCircle,
-        color: 'text-green-600',
-        bgColor: 'bg-green-50 border-green-200',
+        color: 'text-primary',
+        bgColor: 'bg-primary/10 border-primary/20',
         label: 'Completed'
       }
     case 'cancelled':
       return {
         variant: 'destructive' as const,
         icon: XCircle,
-        color: 'text-red-600',
-        bgColor: 'bg-red-50 border-red-200',
+        color: 'text-destructive',
+        bgColor: 'bg-destructive/10 border-destructive/20',
         label: 'Cancelled'
       }
     case 'no-show':
       return {
         variant: 'outline' as const,
         icon: UserX,
-        color: 'text-gray-600',
-        bgColor: 'bg-gray-50 border-gray-200',
+        color: 'text-muted-foreground',
+        bgColor: 'bg-muted/50 border-muted',
         label: 'No Show'
       }
     default:
       return {
         variant: 'outline' as const,
         icon: AlertCircle,
-        color: 'text-gray-600',
-        bgColor: 'bg-gray-50 border-gray-200',
+        color: 'text-muted-foreground',
+        bgColor: 'bg-muted/50 border-muted',
         label: status
       }
   }

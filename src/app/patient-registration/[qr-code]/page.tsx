@@ -99,8 +99,8 @@ export default function PatientRegistrationPage({ params }: PatientRegistrationP
           return (
             <div className="text-center p-8 space-y-6">
               <div className="flex justify-center">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10">
-                  <CheckCircle className="h-8 w-8 text-green-600" />
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                  <CheckCircle className="h-8 w-8 text-primary" />
                 </div>
               </div>
               <div className="space-y-2">
@@ -110,7 +110,7 @@ export default function PatientRegistrationPage({ params }: PatientRegistrationP
                 </p>
               </div>
               <Alert className="text-left">
-                <CheckCircle className="h-4 w-4 text-green-600" />
+                <CheckCircle className="h-4 w-4 text-primary" />
                 <AlertDescription>
                   <strong>What&apos;s Next?</strong>
                   <br />
@@ -129,7 +129,7 @@ export default function PatientRegistrationPage({ params }: PatientRegistrationP
           <div className="space-y-6">
             <div className="text-center space-y-2">
               <div className="flex justify-center">
-                <Badge variant="outline" className="gap-2 text-green-600 border-green-200">
+                <Badge variant="outline" className="gap-2">
                   <CheckCircle className="h-3 w-3" />
                   Valid Registration Link
                 </Badge>
@@ -153,8 +153,8 @@ export default function PatientRegistrationPage({ params }: PatientRegistrationP
         return (
           <div className="text-center p-8 space-y-6">
             <div className="flex justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-500/10">
-                <Clock className="h-8 w-8 text-orange-600" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-secondary/20">
+                <Clock className="h-8 w-8 text-secondary-foreground" />
               </div>
             </div>
             <div className="space-y-2">
@@ -202,8 +202,8 @@ export default function PatientRegistrationPage({ params }: PatientRegistrationP
         return (
           <div className="text-center p-8 space-y-6">
             <div className="flex justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10">
-                <XCircle className="h-8 w-8 text-red-600" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
+                <XCircle className="h-8 w-8 text-destructive" />
               </div>
             </div>
             <div className="space-y-2">
@@ -235,11 +235,11 @@ export default function PatientRegistrationPage({ params }: PatientRegistrationP
             <div className="flex justify-center">
               <div className="bg-primary/10 p-4 rounded-2xl border border-primary/20 relative shadow-lg">
                 <Image
-                  src="/lav-dentaire-logo.svg"
+                  src="/icon.svg"
                   alt="LAV Dentaire Logo"
-                  width={40}
-                  height={40}
-                  className="h-10 w-10"
+                  width={56}
+                  height={56}
+                  className="h-14 w-14"
                 />
                 <div className="absolute -top-1 -right-1 bg-primary h-3 w-3 rounded-full border-2 border-background animate-pulse" title="System Online" />
               </div>

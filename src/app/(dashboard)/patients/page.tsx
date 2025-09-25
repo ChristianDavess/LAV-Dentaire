@@ -153,7 +153,7 @@ export default function PatientsPage() {
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
             <h2 className="text-lg font-semibold">Patients</h2>
-            <p className="text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Manage patient records, medical history, and appointments
             </p>
           </div>

@@ -310,7 +310,7 @@ async function handleTestReminder(body: any, user: any) {
       .replace(/\n/g, '<br>')
 
     const { data, error } = await resend.emails.send({
-      from: 'LAV Dentaire <appointments@lavdentaire.com>',
+      from: `LAV Dentaire <${process.env.FROM_EMAIL}>`,
       to: [targetEmail],
       subject: subject,
       html: `

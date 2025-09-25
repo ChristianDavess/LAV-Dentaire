@@ -44,13 +44,13 @@ export default function TreatmentDetails({
   const getPaymentStatusColor = (status: TreatmentWithDetails['payment_status']) => {
     switch (status) {
       case 'paid':
-        return 'text-green-600'
+        return 'text-primary'
       case 'partial':
-        return 'text-yellow-600'
+        return 'text-secondary-foreground'
       case 'pending':
-        return 'text-red-600'
+        return 'text-destructive'
       default:
-        return 'text-gray-600'
+        return 'text-muted-foreground'
     }
   }
 

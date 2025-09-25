@@ -9,11 +9,11 @@ export default function ProcedureChart() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Image
-            src="/lav-dentaire-logo.svg"
+            src="/icon.svg"
             alt="LAV Dentaire Logo"
-            width={20}
-            height={20}
-            className="h-5 w-5 text-primary"
+            width={32}
+            height={32}
+            className="h-8 w-8 text-primary"
           />
           Procedure Analytics
         </CardTitle>

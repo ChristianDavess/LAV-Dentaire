@@ -75,7 +75,7 @@ export default function ForgotPasswordPage() {
             <div className="flex justify-center">
               <div className="flex h-12 w-12 items-center justify-center">
                 <Image
-                  src="/lav-dentaire-logo.svg"
+                  src="/icon.svg"
                   alt="LAV Dentaire Logo"
                   width={48}
                   height={48}
@@ -86,14 +86,14 @@ export default function ForgotPasswordPage() {
             </div>
             <div className="space-y-2 text-center">
               <CardTitle className="text-xl font-semibold">Check your email</CardTitle>
-              <CardDescription className="text-base text-muted-foreground">
+              <CardDescription className="text-sm text-muted-foreground">
                 We&apos;ve sent password reset instructions to your email
               </CardDescription>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex justify-center">
-              <CheckCircle className="h-12 w-12 text-green-500" />
+              <CheckCircle className="h-12 w-12 text-primary" />
             </div>
             <div className="space-y-4">
               <p className="text-center text-sm text-muted-foreground">
@@ -121,7 +121,7 @@ export default function ForgotPasswordPage() {
           <div className="flex justify-center">
             <div className="flex h-12 w-12 items-center justify-center">
               <Image
-                src="/lav-dentaire-logo.svg"
+                src="/icon.svg"
                 alt="LAV Dentaire Logo"
                 width={48}
                 height={48}
@@ -132,7 +132,7 @@ export default function ForgotPasswordPage() {
           </div>
           <div className="space-y-2 text-center">
             <CardTitle className="text-xl font-semibold">Reset password</CardTitle>
-            <CardDescription className="text-base text-muted-foreground">
+            <CardDescription className="text-sm text-muted-foreground">
               Enter your email and we&apos;ll send you reset instructions
             </CardDescription>
           </div>

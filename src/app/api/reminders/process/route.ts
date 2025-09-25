@@ -63,7 +63,7 @@ async function sendReminderEmail(
       .replace(/\n/g, '<br>')
 
     const { data, error } = await resend.emails.send({
-      from: 'LAV Dentaire <appointments@lavdentaire.com>',
+      from: `LAV Dentaire <${process.env.FROM_EMAIL}>`,
       to: [appointment.patients.email],
       subject: subject,
       html: `

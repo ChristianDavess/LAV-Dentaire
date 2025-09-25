@@ -131,9 +131,9 @@ export function LoginForm() {
     <Card className="mx-auto max-w-sm">
       <CardHeader className="space-y-6">
         <div className="flex justify-center">
-          <div className="flex h-12 w-12 items-center justify-center">
+          <div className="flex h-16 w-16 items-center justify-center">
             <Image
-              src="/lav-dentaire-logo.svg"
+              src="/icon.svg"
               alt="LAV Dentaire Logo"
               width={48}
               height={48}
@@ -143,8 +143,8 @@ export function LoginForm() {
           </div>
         </div>
         <div className="space-y-2 text-center">
-          <CardTitle className="text-xl font-semibold">Welcome back</CardTitle>
-          <CardDescription className="text-base text-muted-foreground">
+          <CardTitle className="text-lg font-semibold">Welcome back</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground">
             Sign in to LAV Dentaire
           </CardDescription>
         </div>

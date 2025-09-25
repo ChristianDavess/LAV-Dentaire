@@ -77,11 +77,11 @@ export function Sidebar({ className }: SidebarProps) {
           <div className="relative flex items-center h-10">
             <div className="absolute left-0 flex h-10 w-10 items-center justify-center">
               <Image
-                src="/lav-dentaire-logo.svg"
+                src="/icon.svg"
                 alt="LAV Dentaire Logo"
-                width={40}
-                height={40}
-                className="h-10 w-10 object-contain"
+                width={32}
+                height={32}
+                className="h-8 w-8 object-contain"
                 priority
               />
             </div>

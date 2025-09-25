@@ -209,11 +209,11 @@ export function PatientProfileView({ patient, trigger, onPatientUpdate }: Patien
             </TabsTrigger>
             <TabsTrigger value="treatments" className="flex items-center gap-2">
               <Image
-                src="/lav-dentaire-logo.svg"
+                src="/icon.svg"
                 alt="LAV Dentaire Logo"
-                width={16}
-                height={16}
-                className="h-4 w-4"
+                width={24}
+                height={24}
+                className="h-6 w-6"
               />
               Treatments
             </TabsTrigger>
@@ -372,11 +372,11 @@ export function PatientProfileView({ patient, trigger, onPatientUpdate }: Patien
                   <div className="flex items-center gap-3">
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
                       <Image
-                        src="/lav-dentaire-logo.svg"
+                        src="/icon.svg"
                         alt="LAV Dentaire Logo"
-                        width={16}
-                        height={16}
-                        className="h-4 w-4"
+                        width={24}
+                        height={24}
+                        className="h-6 w-6"
                       />
                     </div>
                     Treatment History
@@ -392,11 +392,11 @@ export function PatientProfileView({ patient, trigger, onPatientUpdate }: Patien
                   <div className="flex justify-center mb-4">
                     <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted/30">
                       <Image
-                        src="/lav-dentaire-logo.svg"
+                        src="/icon.svg"
                         alt="LAV Dentaire Logo"
-                        width={40}
-                        height={40}
-                        className="h-10 w-10 text-muted-foreground"
+                        width={48}
+                        height={48}
+                        className="h-12 w-12 text-muted-foreground"
                       />
                     </div>
                   </div>

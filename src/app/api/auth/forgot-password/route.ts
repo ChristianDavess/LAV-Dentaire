@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       // Send email using Resend
       try {
         const emailResult = await resend.emails.send({
-          from: 'LAV Dentaire <onboarding@resend.dev>',
+          from: `LAV Dentaire <${process.env.FROM_EMAIL}>`,
           to: email,
           subject: 'Password Reset Request - LAV Dentaire',
           html: `
