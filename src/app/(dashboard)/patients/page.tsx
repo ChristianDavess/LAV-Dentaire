@@ -73,6 +73,27 @@ const formatGender = (gender: string | null | undefined): string => {
   }
 }
 
+// Helper function to get patient contact status badge
+const getContactStatusBadge = (patient: Patient) => {
+  const hasEmail = !!patient.email
+  const hasPhone = !!patient.phone
+
+  if (hasEmail && hasPhone) {
+    return { variant: 'default' as const, text: 'Complete', icon: '✓' }
+  } else if (hasEmail || hasPhone) {
+    return { variant: 'secondary' as const, text: 'Partial', icon: '◐' }
+  } else {
+    return { variant: 'destructive' as const, text: 'Missing', icon: '!' }
+  }
+}
+
+// Helper function to check if patient is recently registered
+const isRecentlyRegistered = (patient: Patient): boolean => {
+  const registrationDate = new Date(patient.created_at)
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+  return registrationDate >= thirtyDaysAgo
+}
+
 // Fetch patients from API
 async function fetchPatients(): Promise<Patient[]> {
   try {
@@ -95,9 +116,11 @@ async function fetchPatients(): Promise<Patient[]> {
 
 export default function PatientsPage() {
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
+  const [registrationFilter, setRegistrationFilter] = useState('all')
+  const [contactFilter, setContactFilter] = useState('all')
   const [patients, setPatients] = useState<Patient[]>([])
   const [loading, setLoading] = useState(true)
+  const [exporting, setExporting] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const patientsPerPage = 5
 
@@ -126,13 +149,123 @@ export default function PatientsPage() {
     }
   }
 
+  // Function to export patient data to CSV
+  const exportPatients = async () => {
+    setExporting(true)
+    try {
+      // Use filtered patients (respects current search and filter criteria)
+      const dataToExport = filteredPatients
+
+      // CSV headers
+      const headers = [
+        'Patient ID',
+        'First Name',
+        'Last Name',
+        'Middle Name',
+        'Email',
+        'Phone',
+        'Date of Birth',
+        'Gender',
+        'Address',
+        'Emergency Contact Name',
+        'Emergency Contact Phone',
+        'Registration Date',
+        'Notes'
+      ]
+
+      // Convert data to CSV format
+      const csvContent = [headers]
+        .concat(
+          dataToExport.map(patient => [
+            patient.patient_id || '',
+            patient.first_name || '',
+            patient.last_name || '',
+            patient.middle_name || '',
+            patient.email || '',
+            patient.phone || '',
+            patient.date_of_birth || '',
+            formatGender(patient.gender) || '',
+            patient.address || '',
+            patient.emergency_contact_name || '',
+            patient.emergency_contact_phone || '',
+            new Date(patient.created_at).toLocaleDateString() || '',
+            (patient.notes || '').replace(/[\r\n]+/g, ' ').replace(/"/g, '""') // Escape quotes and newlines
+          ])
+        )
+        .map(row => row.map(field => `"${field}"`).join(','))
+        .join('\n')
+
+      // Create and download the file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const link = document.createElement('a')
+
+      if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob)
+        link.setAttribute('href', url)
+
+        // Generate filename with current date and filter info
+        const currentDate = new Date().toISOString().split('T')[0]
+        let filename = `patients_${currentDate}`
+
+        if (searchTerm) {
+          filename += `_search-${searchTerm.replace(/[^a-zA-Z0-9]/g, '')}`
+        }
+        if (registrationFilter !== 'all') {
+          filename += `_${registrationFilter}`
+        }
+        if (contactFilter !== 'all') {
+          filename += `_${contactFilter}`
+        }
+
+        link.setAttribute('download', `${filename}.csv`)
+        link.style.visibility = 'hidden'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+
+        console.log(`✅ Exported ${dataToExport.length} patients to ${filename}.csv`)
+      }
+    } catch (error) {
+      console.error('❌ Error exporting patients:', error)
+      // In a real app, you might want to show a toast notification here
+    } finally {
+      setExporting(false)
+    }
+  }
+
   const filteredPatients = patients.filter(patient => {
     const matchesSearch = `${patient.first_name} ${patient.last_name} ${patient.patient_id}`
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
-    // For now, treat all patients as active since we don't have status field in API
-    const matchesStatus = statusFilter === 'all' || statusFilter === 'active'
-    return matchesSearch && matchesStatus
+
+    // Registration date filtering
+    const registrationDate = new Date(patient.created_at)
+    const now = new Date()
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+    const startOfYear = new Date(now.getFullYear(), 0, 1)
+
+    let matchesRegistration = true
+    if (registrationFilter === 'recent') {
+      matchesRegistration = registrationDate >= thirtyDaysAgo
+    } else if (registrationFilter === 'this_year') {
+      matchesRegistration = registrationDate >= startOfYear
+    }
+
+    // Contact completeness filtering
+    const hasEmail = !!patient.email
+    const hasPhone = !!patient.phone
+    let matchesContact = true
+
+    if (contactFilter === 'complete') {
+      matchesContact = hasEmail && hasPhone
+    } else if (contactFilter === 'partial') {
+      matchesContact = (hasEmail || hasPhone) && !(hasEmail && hasPhone)
+    } else if (contactFilter === 'missing') {
+      matchesContact = !hasEmail && !hasPhone
+    }
+
+    return matchesSearch && matchesRegistration && matchesContact
   })
 
   // Pagination calculations
@@ -144,7 +277,7 @@ export default function PatientsPage() {
   // Reset to first page when search or filter changes
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchTerm, statusFilter])
+  }, [searchTerm, registrationFilter, contactFilter])
 
   return (
     <div className="flex-1 space-y-6 p-4 md:p-8 pt-6">
@@ -161,12 +294,17 @@ export default function PatientsPage() {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <Download className="h-4 w-4" />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={exportPatients}
+                    disabled={exporting || loading}
+                  >
+                    <Download className={`h-4 w-4 ${exporting ? 'animate-bounce' : ''}`} />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Export patient data</p>
+                  <p>{exporting ? 'Exporting...' : `Export ${filteredPatients.length} patients to CSV`}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -189,15 +327,27 @@ export default function PatientsPage() {
                     className="pl-10"
                   />
                 </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-40">
-                    <Filter className="mr-2 h-4 w-4" />
-                    <SelectValue placeholder="Status" />
+                <Select value={registrationFilter} onValueChange={setRegistrationFilter}>
+                  <SelectTrigger className="w-44">
+                    <Calendar className="mr-2 h-4 w-4" />
+                    <SelectValue placeholder="Registration" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="all">All Patients</SelectItem>
+                    <SelectItem value="recent">Recent (30 days)</SelectItem>
+                    <SelectItem value="this_year">This Year</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={contactFilter} onValueChange={setContactFilter}>
+                  <SelectTrigger className="w-40">
+                    <Phone className="mr-2 h-4 w-4" />
+                    <SelectValue placeholder="Contact" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Contact</SelectItem>
+                    <SelectItem value="complete">Complete Info</SelectItem>
+                    <SelectItem value="partial">Partial Info</SelectItem>
+                    <SelectItem value="missing">Missing Info</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -369,9 +519,21 @@ export default function PatientsPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="default">
-                            Active
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            {(() => {
+                              const contactStatus = getContactStatusBadge(patient)
+                              return (
+                                <Badge variant={contactStatus.variant} className="text-xs">
+                                  {contactStatus.icon} {contactStatus.text}
+                                </Badge>
+                              )
+                            })()}
+                            {isRecentlyRegistered(patient) && (
+                              <Badge variant="outline" className="text-xs">
+                                New
+                              </Badge>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <div className="text-sm">

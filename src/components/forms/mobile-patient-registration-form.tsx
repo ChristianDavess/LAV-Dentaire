@@ -211,13 +211,31 @@ export function MobilePatientRegistrationForm({ qrToken, onSuccess, registration
         }
       }
     } else if (currentStep === 2) {
-      const isValid = await form.trigger(['phone', 'email', 'emergency_contact_phone'])
-      if (!isValid) return
+      // Email is REQUIRED to proceed to step 3 (Medical History)
+      const emailValue = form.getValues('email')
+      if (!emailValue || emailValue.trim() === '') {
+        form.setError('email', {
+          type: 'manual',
+          message: 'Email address is required to proceed to medical history'
+        })
+        return
+      }
 
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(emailValue)) {
+        form.setError('email', {
+          type: 'manual',
+          message: 'Please enter a valid email address'
+        })
+        return
+      }
+
+      // Validate phone format IF provided (optional fields)
       const phoneValue = form.getValues('phone')
       const emergencyPhoneValue = form.getValues('emergency_contact_phone')
 
-      if (phoneValue && !phoneValue.match(/^09\d{9}$/)) {
+      if (phoneValue && phoneValue.trim() !== '' && !phoneValue.match(/^09\d{9}$/)) {
         form.setError('phone', {
           type: 'manual',
           message: 'Phone must be exactly 11 digits starting with 09'
@@ -225,7 +243,7 @@ export function MobilePatientRegistrationForm({ qrToken, onSuccess, registration
         return
       }
 
-      if (emergencyPhoneValue && !emergencyPhoneValue.match(/^09\d{9}$/)) {
+      if (emergencyPhoneValue && emergencyPhoneValue.trim() !== '' && !emergencyPhoneValue.match(/^09\d{9}$/)) {
         form.setError('emergency_contact_phone', {
           type: 'manual',
           message: 'Phone must be exactly 11 digits starting with 09'
@@ -311,7 +329,11 @@ export function MobilePatientRegistrationForm({ qrToken, onSuccess, registration
                     name="first_name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-semibold">First Name *</FormLabel>
+                        <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                          <User className="h-4 w-4 text-primary" />
+                          First Name
+                          <Badge variant="secondary" className="text-xs">Required</Badge>
+                        </FormLabel>
                         <FormControl>
                           <Input {...field} placeholder="Your first name" className="text-base" />
                         </FormControl>
@@ -325,7 +347,11 @@ export function MobilePatientRegistrationForm({ qrToken, onSuccess, registration
                     name="last_name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-semibold">Last Name *</FormLabel>
+                        <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                          <User className="h-4 w-4 text-primary" />
+                          Last Name
+                          <Badge variant="secondary" className="text-xs">Required</Badge>
+                        </FormLabel>
                         <FormControl>
                           <Input {...field} placeholder="Your last name" className="text-base" />
                         </FormControl>
@@ -354,16 +380,23 @@ export function MobilePatientRegistrationForm({ qrToken, onSuccess, registration
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <Calendar22
-                            id="date_of_birth"
-                            label="Date of Birth *"
-                            value={field.value ? new Date(field.value) : undefined}
-                            onChange={(date) => {
-                              field.onChange(date ? date.toISOString().split('T')[0] : '')
-                            }}
-                            placeholder="Select date of birth"
-                            className="w-full"
-                          />
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4 text-primary" />
+                              <span className="text-sm font-semibold">Date of Birth</span>
+                              <Badge variant="secondary" className="text-xs">Required</Badge>
+                            </div>
+                            <Calendar22
+                              id="date_of_birth"
+                              label=""
+                              value={field.value ? new Date(field.value) : undefined}
+                              onChange={(date) => {
+                                field.onChange(date ? date.toISOString().split('T')[0] : '')
+                              }}
+                              placeholder="Select date of birth"
+                              className="w-full"
+                            />
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -375,7 +408,11 @@ export function MobilePatientRegistrationForm({ qrToken, onSuccess, registration
                     name="gender"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm font-semibold">Gender *</FormLabel>
+                        <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                          <Users className="h-4 w-4 text-primary" />
+                          Gender
+                          <Badge variant="secondary" className="text-xs">Required</Badge>
+                        </FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value || ''}>
                           <FormControl>
                             <SelectTrigger className="text-base">
@@ -407,9 +444,12 @@ export function MobilePatientRegistrationForm({ qrToken, onSuccess, registration
                     <Phone className="h-4 w-4" />
                   </div>
                   Contact Information
+                  <Badge variant="outline" className="ml-auto text-xs">
+                    Email Required
+                  </Badge>
                 </CardTitle>
                 <CardDescription>
-                  How can we reach you?
+                  How can we reach you? Email address is required to proceed to medical history.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -418,7 +458,10 @@ export function MobilePatientRegistrationForm({ qrToken, onSuccess, registration
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-semibold">Phone Number *</FormLabel>
+                      <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-primary" />
+                        Phone Number
+                      </FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -457,13 +500,20 @@ export function MobilePatientRegistrationForm({ qrToken, onSuccess, registration
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-semibold">Email Address *</FormLabel>
+                      <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-primary" />
+                        Email Address *
+                        <Badge variant="secondary" className="text-xs">Required</Badge>
+                      </FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                          <Input {...field} value={field.value || ''} type="email" placeholder="your@email.com" className="pl-10 text-base" />
+                          <Input {...field} value={field.value || ''} type="email" placeholder="your@email.com" className="pl-10 text-base border-primary/20 focus:border-primary" />
                         </div>
                       </FormControl>
+                      <FormDescription className="text-xs">
+                        Email is required to access medical history and complete registration
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -540,7 +590,7 @@ export function MobilePatientRegistrationForm({ qrToken, onSuccess, registration
                           </div>
                         </FormControl>
                         <FormDescription className="text-xs">
-                          Format: 09XXXXXXXXX (11 digits)
+                          Format: 09XXXXXXXXX (11 digits) - Optional
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -626,7 +676,7 @@ export function MobilePatientRegistrationForm({ qrToken, onSuccess, registration
                   disabled={isLoading}
                   className="px-6"
                 >
-                  Continue
+                  {currentStep === 2 ? 'Continue to Medical History' : 'Continue'}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               ) : (
