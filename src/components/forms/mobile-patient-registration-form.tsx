@@ -186,7 +186,7 @@ export function MobilePatientRegistrationForm({ qrToken, onSuccess, registration
     form.clearErrors()
 
     if (currentStep === 1) {
-      const isValid = await form.trigger(['first_name', 'last_name', 'date_of_birth', 'gender'])
+      const isValid = await form.trigger(['first_name', 'last_name'])
       if (!isValid) return
 
       const dateOfBirth = form.getValues('date_of_birth')
@@ -216,7 +216,7 @@ export function MobilePatientRegistrationForm({ qrToken, onSuccess, registration
       if (!emailValue || emailValue.trim() === '') {
         form.setError('email', {
           type: 'manual',
-          message: 'Email address is required to proceed to medical history'
+          message: 'Email address is required'
         })
         return
       }
@@ -384,7 +384,6 @@ export function MobilePatientRegistrationForm({ qrToken, onSuccess, registration
                             <div className="flex items-center gap-2">
                               <Calendar className="h-4 w-4 text-primary" />
                               <span className="text-sm font-semibold">Date of Birth</span>
-                              <Badge variant="secondary" className="text-xs">Required</Badge>
                             </div>
                             <Calendar22
                               id="date_of_birth"
@@ -411,7 +410,6 @@ export function MobilePatientRegistrationForm({ qrToken, onSuccess, registration
                         <FormLabel className="text-sm font-semibold flex items-center gap-2">
                           <Users className="h-4 w-4 text-primary" />
                           Gender
-                          <Badge variant="secondary" className="text-xs">Required</Badge>
                         </FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value || ''}>
                           <FormControl>
@@ -444,12 +442,9 @@ export function MobilePatientRegistrationForm({ qrToken, onSuccess, registration
                     <Phone className="h-4 w-4" />
                   </div>
                   Contact Information
-                  <Badge variant="outline" className="ml-auto text-xs">
-                    Email Required
-                  </Badge>
                 </CardTitle>
                 <CardDescription>
-                  How can we reach you? Email address is required to proceed to medical history.
+                  How can we reach you?
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -502,7 +497,7 @@ export function MobilePatientRegistrationForm({ qrToken, onSuccess, registration
                     <FormItem>
                       <FormLabel className="text-sm font-semibold flex items-center gap-2">
                         <Mail className="h-4 w-4 text-primary" />
-                        Email Address *
+                        Email Address
                         <Badge variant="secondary" className="text-xs">Required</Badge>
                       </FormLabel>
                       <FormControl>
@@ -676,7 +671,7 @@ export function MobilePatientRegistrationForm({ qrToken, onSuccess, registration
                   disabled={isLoading}
                   className="px-6"
                 >
-                  {currentStep === 2 ? 'Continue to Medical History' : 'Continue'}
+                  Continue
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               ) : (

@@ -217,6 +217,9 @@ export function useQRTokens() {
     tokens.forEach(token => {
       if (token.used) {
         stats.used++
+      } else if (token.qr_type === 'generic') {
+        // Generic tokens never expire
+        stats.active++
       } else if (new Date(token.expires_at) < now) {
         stats.expired++
       } else {
@@ -312,6 +315,8 @@ export function useQRTokens() {
 // Token status helper
 export const getTokenStatus = (token: QRToken): 'active' | 'expired' | 'used' => {
   if (token.used) return 'used'
+  // Generic tokens never expire
+  if (token.qr_type === 'generic') return 'active'
   if (new Date(token.expires_at) < new Date()) return 'expired'
   return 'active'
 }

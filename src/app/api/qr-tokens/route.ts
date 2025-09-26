@@ -34,11 +34,11 @@ export const GET = createApiHandler()
       // Apply status filter
       const now = new Date().toISOString()
       if (status === 'active') {
-        query = query.eq('used', false).gt('expires_at', now)
+        query = query.eq('used', false).or(`qr_type.eq.generic,expires_at.gt.${now}`)
       } else if (status === 'used') {
         query = query.eq('used', true)
       } else if (status === 'expired') {
-        query = query.eq('used', false).lt('expires_at', now)
+        query = query.eq('used', false).neq('qr_type', 'generic').lt('expires_at', now)
       }
 
       const { data: tokens, error, count } = await query

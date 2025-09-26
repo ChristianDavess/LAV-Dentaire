@@ -69,8 +69,24 @@ export function QRViewerModal({ tokenId, open, onOpenChange }: QRViewerModalProp
 
     try {
       const details = await fetchToken(tokenId)
-      setTokenDetails(details)
-      await generateQRCode(details.registration_url)
+      console.log('QR Token details:', details)
+
+      // Ensure required properties exist
+      const safeDetails = {
+        ...details,
+        qr_type: details.qr_type || 'single-use',
+        status: details.status || 'active',
+        registration_url: details.registration_url || '',
+        reusable: details.reusable || false,
+        usage_count: details.usage_count || 0,
+        created_at: details.created_at || new Date().toISOString(),
+        expires_at: details.expires_at || new Date().toISOString()
+      }
+
+      setTokenDetails(safeDetails)
+      if (safeDetails.registration_url) {
+        await generateQRCode(safeDetails.registration_url)
+      }
     } catch (err) {
       toast({
         variant: "destructive",
@@ -113,7 +129,9 @@ export function QRViewerModal({ tokenId, open, onOpenChange }: QRViewerModalProp
     if (!qrDataUrl || !tokenDetails) return
 
     const link = document.createElement('a')
-    const fileName = `qr-${tokenDetails.qr_type}-${tokenDetails.token.substring(0, 8)}-${new Date().toISOString().split('T')[0]}.png`
+    const qrType = tokenDetails.qr_type || 'token'
+    const tokenId = tokenDetails.token ? tokenDetails.token.substring(0, 8) : 'unknown'
+    const fileName = `qr-${qrType}-${tokenId}-${new Date().toISOString().split('T')[0]}.png`
     link.download = fileName
     link.href = qrDataUrl
     document.body.appendChild(link)
@@ -196,8 +214,8 @@ export function QRViewerModal({ tokenId, open, onOpenChange }: QRViewerModalProp
     return null
   }
 
-  const qrTypeInfo = tokenDetails ? getQRTypeInfo(tokenDetails.qr_type) : null
-  const statusInfo = tokenDetails ? getStatusInfo(tokenDetails.status) : null
+  const qrTypeInfo = tokenDetails ? getQRTypeInfo(tokenDetails.qr_type || 'single-use') : null
+  const statusInfo = tokenDetails ? getStatusInfo(tokenDetails.status || 'active') : null
   const QRTypeIcon = qrTypeInfo?.icon
   const StatusIcon = statusInfo?.icon
 
@@ -206,14 +224,14 @@ export function QRViewerModal({ tokenId, open, onOpenChange }: QRViewerModalProp
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="space-y-4">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <QrCode className="h-6 w-6" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <QrCode className="h-5 w-5" />
             </div>
             <div>
               <DialogTitle className="text-lg font-semibold">
                 QR Code Details
               </DialogTitle>
-              <DialogDescription className="text-base">
+              <DialogDescription className="text-sm text-muted-foreground">
                 View and manage your QR code
               </DialogDescription>
             </div>
@@ -229,7 +247,7 @@ export function QRViewerModal({ tokenId, open, onOpenChange }: QRViewerModalProp
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
           </div>
         ) : tokenDetails && (
           <div className="space-y-6">
@@ -251,7 +269,7 @@ export function QRViewerModal({ tokenId, open, onOpenChange }: QRViewerModalProp
                   <div className="p-4 bg-white rounded-xl border-2 border-dashed border-muted shadow-sm">
                     {isGeneratingQR ? (
                       <div className="w-64 h-64 flex items-center justify-center">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
                       </div>
                     ) : qrDataUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -283,8 +301,10 @@ export function QRViewerModal({ tokenId, open, onOpenChange }: QRViewerModalProp
                     <div className="space-y-1">
                       <p className="text-sm font-medium">Status</p>
                       <div className="flex items-center gap-2">
-                        <Badge variant={statusInfo?.color === 'text-green-600' ? 'default' :
-                                     statusInfo?.color === 'text-blue-600' ? 'secondary' : 'destructive'}>
+                        <Badge variant={
+                          tokenDetails.status === 'active' ? 'default' :
+                          tokenDetails.status === 'used' ? 'secondary' : 'destructive'
+                        }>
                           {StatusIcon && <StatusIcon className="h-3 w-3 mr-1" />}
                           {statusInfo?.label}
                         </Badge>
@@ -292,13 +312,17 @@ export function QRViewerModal({ tokenId, open, onOpenChange }: QRViewerModalProp
                     </div>
                   </div>
 
-                  {tokenDetails.qr_type !== 'generic' && (
+                  {tokenDetails && tokenDetails.qr_type !== 'generic' && (
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1">
                         <p className="text-sm font-medium">Created</p>
                         <p className="text-sm text-muted-foreground">
-                          {new Date(tokenDetails.created_at).toLocaleDateString()} at{' '}
-                          {new Date(tokenDetails.created_at).toLocaleTimeString()}
+                          {tokenDetails.created_at ? (
+                            <>
+                              {new Date(tokenDetails.created_at).toLocaleDateString()} at{' '}
+                              {new Date(tokenDetails.created_at).toLocaleTimeString()}
+                            </>
+                          ) : 'Unknown'}
                         </p>
                       </div>
                       <div className="space-y-1">
@@ -306,9 +330,11 @@ export function QRViewerModal({ tokenId, open, onOpenChange }: QRViewerModalProp
                           {tokenDetails.is_expired ? 'Expired' : 'Expires'}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {tokenDetails.is_expired ?
+                          {tokenDetails.is_expired && tokenDetails.expires_at ?
                             new Date(tokenDetails.expires_at).toLocaleDateString() :
-                            `${formatExpirationTime(tokenDetails.expires_at)} remaining`
+                            tokenDetails.expires_at ?
+                            `${formatExpirationTime(tokenDetails.expires_at)} remaining` :
+                            'No expiration set'
                           }
                         </p>
                       </div>
@@ -325,7 +351,7 @@ export function QRViewerModal({ tokenId, open, onOpenChange }: QRViewerModalProp
                     </p>
                   </div>
 
-                  {tokenDetails.qr_type === 'generic' && (
+                  {tokenDetails && tokenDetails.qr_type === 'generic' && (
                     <Alert>
                       <Infinity className="h-4 w-4" />
                       <AlertDescription>

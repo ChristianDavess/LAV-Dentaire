@@ -129,7 +129,7 @@ export function PatientRegistrationForm({ trigger, onSuccess }: PatientRegistrat
     // Validate current step before proceeding
     if (currentStep === 1) {
       // Validate required fields for step 1
-      const isValid = await form.trigger(['first_name', 'last_name', 'date_of_birth'])
+      const isValid = await form.trigger(['first_name', 'last_name'])
       if (!isValid) return
 
       // Additional date validation
@@ -177,6 +177,13 @@ export function PatientRegistrationForm({ trigger, onSuccess }: PatientRegistrat
           type: 'manual',
           message: 'Phone must be exactly 11 digits starting with 09'
         })
+        return
+      }
+
+      // Email is REQUIRED to proceed to step 3 (Medical History)
+      const emailValue = form.getValues('email')
+      if (!emailValue || emailValue.trim() === '') {
+        form.setError('email', { type: 'manual', message: 'Email address is required to proceed to medical history' })
         return
       }
     }
@@ -274,7 +281,10 @@ export function PatientRegistrationForm({ trigger, onSuccess }: PatientRegistrat
                       name="first_name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-semibold">First Name *</FormLabel>
+                          <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                            First Name
+                            <Badge variant="secondary" className="text-xs">Required</Badge>
+                          </FormLabel>
                           <FormControl>
                             <Input {...field} placeholder="Enter first name" />
                           </FormControl>
@@ -288,7 +298,10 @@ export function PatientRegistrationForm({ trigger, onSuccess }: PatientRegistrat
                       name="last_name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-semibold">Last Name *</FormLabel>
+                          <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                            Last Name
+                            <Badge variant="secondary" className="text-xs">Required</Badge>
+                          </FormLabel>
                           <FormControl>
                             <Input {...field} placeholder="Enter last name" />
                           </FormControl>
@@ -421,7 +434,10 @@ export function PatientRegistrationForm({ trigger, onSuccess }: PatientRegistrat
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-sm font-semibold">Email Address</FormLabel>
+                          <FormLabel className="text-sm font-semibold flex items-center gap-2">
+                            Email Address
+                            <Badge variant="secondary" className="text-xs">Required</Badge>
+                          </FormLabel>
                           <FormControl>
                             <div className="relative">
                               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />

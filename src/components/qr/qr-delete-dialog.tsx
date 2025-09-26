@@ -85,22 +85,22 @@ export function QRDeleteDialog({ token, open, onOpenChange, onSuccess }: QRDelet
         return {
           icon: Users,
           label: 'Reusable QR Token',
-          color: 'text-blue-600',
-          bgColor: 'bg-blue-50'
+          color: 'text-primary',
+          bgColor: 'bg-primary/10'
         }
       case 'single-use':
         return {
           icon: Shield,
           label: 'Single-use QR Token',
-          color: 'text-green-600',
-          bgColor: 'bg-green-50'
+          color: 'text-primary',
+          bgColor: 'bg-primary/10'
         }
       default:
         return {
           icon: Shield,
           label: 'QR Token',
-          color: 'text-gray-600',
-          bgColor: 'bg-gray-50'
+          color: 'text-muted-foreground',
+          bgColor: 'bg-muted/10'
         }
     }
   }
@@ -209,7 +209,7 @@ export function QRDeleteDialog({ token, open, onOpenChange, onSuccess }: QRDelet
         </AlertDialogHeader>
 
         <div className="space-y-4">
-          <AlertDialogDescription className="text-base">
+          <AlertDialogDescription className="text-sm text-muted-foreground">
             {warning?.message}
           </AlertDialogDescription>
 

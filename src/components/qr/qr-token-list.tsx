@@ -170,7 +170,7 @@ export function QRTokenList({ showHeader = true }: QRTokenListProps) {
         <Card className="border-0 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-500/10 text-green-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 <Clock className="h-5 w-5" />
               </div>
               <div>
@@ -184,7 +184,7 @@ export function QRTokenList({ showHeader = true }: QRTokenListProps) {
         <Card className="border-0 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary-foreground">
                 <CheckCircle2 className="h-5 w-5" />
               </div>
               <div>
@@ -279,8 +279,8 @@ export function QRTokenList({ showHeader = true }: QRTokenListProps) {
           {filteredTokens.length === 0 ? (
             <div className="text-center py-12">
               <div className="flex justify-center mb-4">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted/30">
-                  <QrCode className="h-10 w-10 text-muted-foreground" />
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted/30">
+                  <QrCode className="h-5 w-5 text-muted-foreground" />
                 </div>
               </div>
               <h3 className="text-lg font-semibold tracking-tight mb-2">
@@ -404,8 +404,8 @@ export function QRTokenList({ showHeader = true }: QRTokenListProps) {
                             <div className="space-y-1 text-sm">
                               {token.qr_type === 'generic' ? (
                                 <div className="flex items-center gap-1">
-                                  <Infinity className="h-3 w-3 text-green-600" />
-                                  <span className="text-green-600 font-medium">Never expires</span>
+                                  <Infinity className="h-3 w-3 text-primary" />
+                                  <span className="text-primary font-medium">Never expires</span>
                                 </div>
                               ) : (
                                 <>

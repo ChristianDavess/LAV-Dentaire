@@ -100,18 +100,14 @@ export function QRGenerator({ trigger, onSuccess }: QRGeneratorProps) {
       let registrationUrl: string
 
       if (qrType === 'generic') {
-        // Generic QR goes directly to registration page
-        const baseUrl = getQRBaseUrl()
-        registrationUrl = `${baseUrl}/patient-registration`
-
-        // Create mock token data for UI consistency
-        tokenData = {
-          registration_url: registrationUrl,
-          token: null,
+        // Generate generic token via API (with expiration_hours = 0)
+        tokenData = await generateToken({
+          expiration_hours: 0, // Special flag for generic tokens
+          note: note.trim() || undefined,
           qr_type: 'generic',
-          expires_at: null,
-          note: note.trim() || undefined
-        }
+          reusable: true
+        })
+        registrationUrl = tokenData.registration_url
       } else {
         // Generate token for reusable or single-use QRs
         const finalHours = expirationHours === 0 ? customHours : expirationHours
@@ -231,14 +227,14 @@ export function QRGenerator({ trigger, onSuccess }: QRGeneratorProps) {
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="space-y-4">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <QrCode className="h-6 w-6" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <QrCode className="h-5 w-5" />
             </div>
             <div>
               <DialogTitle className="text-lg font-semibold">
                 {step === 'configure' ? 'Generate QR Code' : 'QR Code Generated'}
               </DialogTitle>
-              <DialogDescription className="text-base">
+              <DialogDescription className="text-sm text-muted-foreground">
                 {step === 'configure'
                   ? 'Create a QR code for patient self-registration'
                   : 'Share this QR code with patients for registration'
@@ -366,9 +362,9 @@ export function QRGenerator({ trigger, onSuccess }: QRGeneratorProps) {
               )}
 
               {qrType === 'generic' && (
-                <div className="flex items-center gap-2 text-sm p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <Infinity className="h-4 w-4 text-green-600" />
-                  <span className="text-green-700 font-medium">
+                <div className="flex items-center gap-2 text-sm p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                  <Infinity className="h-4 w-4 text-primary" />
+                  <span className="text-primary font-medium">
                     This QR code never expires and can be used by unlimited patients
                   </span>
                 </div>
@@ -398,7 +394,7 @@ export function QRGenerator({ trigger, onSuccess }: QRGeneratorProps) {
             <Card className="border-0 shadow-sm">
               <CardHeader className="text-center pb-4">
                 <CardTitle className="flex items-center justify-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-500/10 text-green-600">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
                     <CheckCircle className="h-4 w-4" />
                   </div>
                   QR Code Ready

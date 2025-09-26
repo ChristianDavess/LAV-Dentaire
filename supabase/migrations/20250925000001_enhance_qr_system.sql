@@ -49,7 +49,7 @@ BEGIN
   IF EXISTS (SELECT 1 FROM procedures WHERE is_active = true LIMIT 1) THEN
     INSERT INTO qr_registration_tokens (token, expires_at, used, reusable, qr_type, usage_count, note)
     SELECT
-      'sample-generic-token-' || generate_random_uuid()::text,
+      'sample-generic-token-' || gen_random_uuid()::text,
       NOW() + INTERVAL '1 year',
       false,
       true,

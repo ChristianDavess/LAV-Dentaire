@@ -261,9 +261,9 @@ export default function DayView({
               ) : (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                   <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
-                    <CalendarDays className="h-8 w-8 text-muted-foreground" />
+                    <CalendarDays className="h-5 w-5 text-muted-foreground" />
                   </div>
-                  <h3 className="text-base font-semibold text-muted-foreground mb-2">
+                  <h3 className="text-lg font-semibold text-muted-foreground mb-2">
                     No appointments today
                   </h3>
                   <p className="text-sm text-muted-foreground max-w-sm mb-4">

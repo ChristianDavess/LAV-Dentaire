@@ -12,18 +12,23 @@ const tokenIdSchema = z.object({
 // GET /api/qr-tokens/[id] - Get individual QR token details
 export const GET = createApiHandler()
   .requireAuth()
-  .handle(async (request: NextRequest, user: any, context: { params: { id: string } }) => {
+  .handle(async (request: NextRequest, user: any) => {
     const supabase = createServiceClient()
 
     try {
+      // Extract ID from URL path
+      const url = new URL(request.url)
+      const pathParts = url.pathname.split('/')
+      const id = pathParts[pathParts.length - 1]
+
       // Validate token ID
-      const { id } = tokenIdSchema.parse({ id: context.params.id })
+      const validatedId = tokenIdSchema.parse({ id }).id
 
       // Fetch token details
       const { data: token, error } = await supabase
         .from('qr_registration_tokens')
         .select('*')
-        .eq('id', id)
+        .eq('id', validatedId)
         .single()
 
       if (error || !token) {
@@ -34,20 +39,27 @@ export const GET = createApiHandler()
       const baseUrl = getQRBaseUrl()
       let registrationUrl: string
 
-      if (token.qr_type === 'generic') {
+      // Add computed fields (with fallbacks for missing columns)
+      const now = new Date()
+      const expiresAt = new Date(token.expires_at)
+      const qrType = token.qr_type || 'single-use'
+      const reusable = token.reusable || false
+      const used = token.used || false
+      const isExpired = qrType !== 'generic' && now > expiresAt
+      const isUsed = !reusable && used
+
+      if (qrType === 'generic') {
         registrationUrl = `${baseUrl}/patient-registration`
       } else {
         registrationUrl = `${baseUrl}/patient-registration/${token.token}`
       }
 
-      // Add computed fields
-      const now = new Date()
-      const expiresAt = new Date(token.expires_at)
-      const isExpired = token.qr_type !== 'generic' && now > expiresAt
-      const isUsed = !token.reusable && token.used
-
       return createSuccessResponse({
         ...token,
+        qr_type: qrType,
+        reusable,
+        used,
+        usage_count: token.usage_count || 0,
         registration_url: registrationUrl,
         is_expired: isExpired,
         is_used: isUsed,
@@ -66,18 +78,23 @@ export const GET = createApiHandler()
 // DELETE /api/qr-tokens/[id] - Delete individual QR token
 export const DELETE = createApiHandler()
   .requireAuth()
-  .handle(async (request: NextRequest, user: any, context: { params: { id: string } }) => {
+  .handle(async (request: NextRequest, user: any) => {
     const supabase = createServiceClient()
 
     try {
+      // Extract ID from URL path
+      const url = new URL(request.url)
+      const pathParts = url.pathname.split('/')
+      const id = pathParts[pathParts.length - 1]
+
       // Validate token ID
-      const { id } = tokenIdSchema.parse({ id: context.params.id })
+      const validatedId = tokenIdSchema.parse({ id }).id
 
       // First, check if token exists and get its details
       const { data: token, error: fetchError } = await supabase
         .from('qr_registration_tokens')
         .select('*')
-        .eq('id', id)
+        .eq('id', validatedId)
         .single()
 
       if (fetchError || !token) {
@@ -99,7 +116,7 @@ export const DELETE = createApiHandler()
       const { error: deleteError } = await supabase
         .from('qr_registration_tokens')
         .delete()
-        .eq('id', id)
+        .eq('id', validatedId)
 
       if (deleteError) {
         console.error('Error deleting QR token:', deleteError)

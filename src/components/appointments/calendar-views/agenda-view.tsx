@@ -86,7 +86,7 @@ export default function AgendaView({
           <div className="flex items-center gap-3">
             <CalendarDays className="h-4 w-4 text-primary" />
             <div>
-              <h3 className={`text-base font-semibold ${isDateToday ? 'text-primary' : ''}`}>
+              <h3 className={`text-lg font-semibold ${isDateToday ? 'text-primary' : ''}`}>
                 {format(date, 'EEEE, MMMM dd')}
                 {isDateToday && (
                   <Badge variant="secondary" className="ml-2 text-xs">
@@ -168,7 +168,7 @@ export default function AgendaView({
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                <TrendingUp className="h-4 w-4 text-primary-foreground" />
+                <TrendingUp className="h-4 w-4 text-primary" />
               </div>
               <div>
                 <p className="text-2xl font-semibold">{completedAppointments}</p>
@@ -196,7 +196,7 @@ export default function AgendaView({
       {/* Appointments List */}
       <Card className="flex-1">
         <CardHeader>
-          <CardTitle className="text-base font-semibold">
+          <CardTitle className="text-lg font-semibold">
             {format(currentDate, 'MMMM yyyy')} Schedule
           </CardTitle>
         </CardHeader>
@@ -210,9 +210,9 @@ export default function AgendaView({
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
-                    <CalendarDays className="h-8 w-8 text-muted-foreground" />
+                    <CalendarDays className="h-5 w-5 text-muted-foreground" />
                   </div>
-                  <h3 className="text-base font-semibold text-muted-foreground mb-2">
+                  <h3 className="text-lg font-semibold text-muted-foreground mb-2">
                     No appointments scheduled
                   </h3>
                   <p className="text-sm text-muted-foreground max-w-sm">

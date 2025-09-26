@@ -8,7 +8,7 @@ import { getQRBaseUrl } from '@/lib/utils/url'
 
 // QR Token generation schema (for query parameters - strings need to be coerced)
 const generateTokenSchema = z.object({
-  expiration_hours: z.coerce.number().min(1).max(168).default(24), // 1 hour to 1 week
+  expiration_hours: z.coerce.number().min(0).max(168).default(24), // 0 for generic (no expiry), 1-168 for others
   note: z.string().optional(),
   qr_type: z.string().optional().default('single-use'),
   reusable: z.coerce.boolean().optional().default(false)
@@ -37,9 +37,16 @@ export const GET = createApiHandler()
       // Generate unique token
       const token = uuidv4()
 
-      // Calculate expiration time
-      const expiresAt = new Date()
-      expiresAt.setHours(expiresAt.getHours() + expiration_hours)
+      // Calculate expiration time (generic tokens get far future date)
+      let expiresAt: Date
+      if (qr_type === 'generic') {
+        // Set generic tokens to expire far in the future (100 years)
+        expiresAt = new Date()
+        expiresAt.setFullYear(expiresAt.getFullYear() + 100)
+      } else {
+        expiresAt = new Date()
+        expiresAt.setHours(expiresAt.getHours() + expiration_hours)
+      }
 
       // Insert token into database
       const { data: tokenData, error } = await supabase
@@ -49,9 +56,10 @@ export const GET = createApiHandler()
             token,
             expires_at: expiresAt.toISOString(),
             used: false,
-            reusable,
+            reusable: qr_type === 'reusable' || qr_type === 'generic',
             qr_type,
-            usage_count: 0
+            usage_count: 0,
+            note: note || null
           }
         ])
         .select()
@@ -64,7 +72,12 @@ export const GET = createApiHandler()
 
       // Generate registration URL
       const baseUrl = getQRBaseUrl()
-      const registrationUrl = `${baseUrl}/patient-registration/${token}`
+      let registrationUrl: string
+      if (qr_type === 'generic') {
+        registrationUrl = `${baseUrl}/patient-registration`
+      } else {
+        registrationUrl = `${baseUrl}/patient-registration/${token}`
+      }
 
       return createSuccessResponse({
         token: tokenData.token,
@@ -107,12 +120,14 @@ export const POST = createApiHandler()
         throw new ApiErrorClass('QR token has already been used', 400)
       }
 
-      // Check if token has expired
-      const now = new Date()
-      const expiresAt = new Date(tokenData.expires_at)
+      // Check if token has expired (generic tokens never expire)
+      if (tokenData.qr_type !== 'generic') {
+        const now = new Date()
+        const expiresAt = new Date(tokenData.expires_at)
 
-      if (now > expiresAt) {
-        throw new ApiErrorClass('QR token has expired', 400)
+        if (now > expiresAt) {
+          throw new ApiErrorClass('QR token has expired', 400)
+        }
       }
 
       // Generate patient ID (reuse existing logic)
@@ -212,11 +227,12 @@ export const DELETE = createApiHandler()
     try {
       const now = new Date().toISOString()
 
-      // Delete expired tokens
+      // Delete expired tokens (exclude generic tokens)
       const { data: deletedTokens, error } = await supabase
         .from('qr_registration_tokens')
         .delete()
         .lt('expires_at', now)
+        .neq('qr_type', 'generic')
         .select('id')
 
       if (error) {
