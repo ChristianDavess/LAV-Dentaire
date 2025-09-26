@@ -101,7 +101,7 @@ export default function DayView({
       >
         {/* Time Label */}
         <div className="w-20 p-3 border-r border-muted/50 bg-muted/30 flex flex-col items-center justify-start">
-          <span className="text-sm font-medium text-muted-foreground">
+          <span className="text-sm font-semibold text-muted-foreground">
             {format(parseISO(`2000-01-01T${timeSlot}`), 'h:mm')}
           </span>
           <span className="text-xs text-muted-foreground">
@@ -263,7 +263,7 @@ export default function DayView({
                   <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
                     <CalendarDays className="h-8 w-8 text-muted-foreground" />
                   </div>
-                  <h3 className="text-lg font-semibold text-muted-foreground mb-2">
+                  <h3 className="text-base font-semibold text-muted-foreground mb-2">
                     No appointments today
                   </h3>
                   <p className="text-sm text-muted-foreground max-w-sm mb-4">

@@ -127,10 +127,11 @@ export const POST = createApiHandler()
     const supabase = createServiceClient()
 
     try {
+
       // Check if patient exists
       const { data: patient, error: patientError } = await supabase
         .from('patients')
-        .select('id')
+        .select('id, patient_id, first_name, last_name')
         .eq('id', validatedData.patient_id)
         .single()
 
@@ -138,10 +139,13 @@ export const POST = createApiHandler()
         throw new ApiErrorClass('Patient not found', 404)
       }
 
-      // Check if appointment is in the past
+      // Check if appointment is in the past (allow same-day appointments with reasonable buffer)
       const appointmentDateTime = new Date(`${validatedData.appointment_date}T${validatedData.appointment_time}`)
-      if (appointmentDateTime < new Date()) {
-        throw new ApiErrorClass('Cannot schedule appointments in the past', 400)
+      const now = new Date()
+      const minimumTime = new Date(now.getTime() + 15 * 60 * 1000) // 15 minutes from now
+
+      if (appointmentDateTime < minimumTime) {
+        throw new ApiErrorClass('Appointments must be scheduled at least 15 minutes in advance', 400)
       }
 
       // Check for conflicts

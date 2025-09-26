@@ -28,6 +28,7 @@ import {
   Users,
   Shield
 } from 'lucide-react'
+import { getQRBaseUrl } from '@/lib/utils/url'
 
 interface QRGeneratorProps {
   trigger?: React.ReactNode
@@ -72,6 +73,7 @@ const QR_TYPE_OPTIONS = [
 
 type QRType = 'generic' | 'reusable' | 'single-use'
 
+
 export function QRGenerator({ trigger, onSuccess }: QRGeneratorProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [qrType, setQrType] = useState<QRType>('generic')
@@ -99,7 +101,7 @@ export function QRGenerator({ trigger, onSuccess }: QRGeneratorProps) {
 
       if (qrType === 'generic') {
         // Generic QR goes directly to registration page
-        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+        const baseUrl = getQRBaseUrl()
         registrationUrl = `${baseUrl}/patient-registration`
 
         // Create mock token data for UI consistency

@@ -154,10 +154,10 @@ export default function WeekView({
           ${isDateToday ? 'bg-primary/10' : 'bg-muted/30'}
         `}
       >
-        <div className={`text-sm font-medium ${isDateToday ? 'text-primary' : 'text-foreground'}`}>
+        <div className={`text-sm font-semibold ${isDateToday ? 'text-primary' : 'text-foreground'}`}>
           {format(date, 'EEE')}
         </div>
-        <div className={`text-lg font-semibold ${isDateToday ? 'text-primary' : 'text-foreground'}`}>
+        <div className={`text-base font-semibold ${isDateToday ? 'text-primary' : 'text-foreground'}`}>
           {format(date, 'd')}
         </div>
         {dayAppointments.length > 0 && (
@@ -220,7 +220,7 @@ export default function WeekView({
                   <React.Fragment key={timeSlot}>
                     {/* Time Label */}
                     <div className="h-20 p-2 border-b border-r border-muted/50 bg-muted/30 flex items-center justify-center">
-                      <span className="text-sm font-medium text-muted-foreground">
+                      <span className="text-sm font-semibold text-muted-foreground">
                         {format(parseISO(`2000-01-01T${timeSlot}`), 'h:mm a')}
                       </span>
                     </div>

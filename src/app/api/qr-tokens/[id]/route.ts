@@ -2,10 +2,12 @@ import { NextRequest } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { createApiHandler, createSuccessResponse, ApiErrorClass } from '@/lib/middleware'
 import { z } from 'zod'
+import { getQRBaseUrl } from '@/lib/utils/url'
 
 const tokenIdSchema = z.object({
   id: z.string().uuid()
 })
+
 
 // GET /api/qr-tokens/[id] - Get individual QR token details
 export const GET = createApiHandler()
@@ -29,7 +31,7 @@ export const GET = createApiHandler()
       }
 
       // Generate registration URL for the token
-      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+      const baseUrl = getQRBaseUrl()
       let registrationUrl: string
 
       if (token.qr_type === 'generic') {

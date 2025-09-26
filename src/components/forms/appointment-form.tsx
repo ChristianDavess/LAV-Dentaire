@@ -20,12 +20,12 @@ import { cn } from '@/lib/utils'
 import { Patient, Appointment } from '@/types'
 
 const appointmentSchema = z.object({
-  patient_id: z.string().min(1, 'Please select a patient'),
-  appointment_date: z.string().min(1, 'Please select a date'),
-  appointment_time: z.string().min(1, 'Please select a time'),
+  patient_id: z.string().uuid('Please select a valid patient'),
+  appointment_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Please select a valid date'),
+  appointment_time: z.string().regex(/^\d{2}:\d{2}:\d{2}$/, 'Please select a valid time'),
   duration_minutes: z.number().min(15, 'Minimum duration is 15 minutes').max(240, 'Maximum duration is 4 hours'),
-  reason: z.string().max(500, 'Reason must be less than 500 characters').optional(),
-  notes: z.string().max(1000, 'Notes must be less than 1000 characters').optional(),
+  reason: z.string().max(500).optional().or(z.literal('')),
+  notes: z.string().max(1000).optional().or(z.literal('')),
   status: z.enum(['scheduled', 'completed', 'cancelled', 'no-show'])
 })
 
@@ -99,6 +99,14 @@ export default function AppointmentForm({ appointment, onSubmit, onCancel }: App
   }
 
   const handleSubmit = (data: AppointmentFormData) => {
+    console.log('📋 Appointment form submission data:', data)
+    const selectedPatient = patients.find(p => p.id === data.patient_id)
+    console.log('👤 Selected patient details:', selectedPatient ? {
+      id: selectedPatient.id,
+      patient_id: selectedPatient.patient_id,
+      name: `${selectedPatient.first_name} ${selectedPatient.last_name}`
+    } : 'Patient not found in local list')
+    console.log('📊 Total patients loaded:', patients.length)
     onSubmit(data)
   }
 
@@ -185,9 +193,11 @@ export default function AppointmentForm({ appointment, onSubmit, onCancel }: App
                       mode="single"
                       selected={selectedDate}
                       onSelect={handleDateSelect}
-                      disabled={(date) =>
-                        date < new Date() || date < new Date("1900-01-01")
-                      }
+                      disabled={(date) => {
+                        const today = new Date()
+                        today.setHours(0, 0, 0, 0) // Start of today
+                        return date < today || date < new Date("1900-01-01")
+                      }}
                       initialFocus
                     />
                   </PopoverContent>

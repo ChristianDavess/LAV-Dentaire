@@ -96,6 +96,7 @@ export const POST = createApiHandler()
         patient_id: patientId,
       }
 
+
       const { data: patient, error } = await supabase
         .from('patients')
         .insert([finalPatientData])

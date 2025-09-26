@@ -10,7 +10,11 @@ export class ApiHandler {
 
   // Add authentication requirement
   requireAuth() {
-    this.middlewares.push(withAuth)
+    this.middlewares.push((req: NextRequest, handler: any, ...args: any[]) => {
+      return withAuth(req, (req: NextRequest, user: any) => {
+        return handler(req, user, ...args)
+      })
+    })
     return this
   }
 
@@ -23,9 +27,9 @@ export class ApiHandler {
   // Add body validation
   validateBody<T>(schema: ZodSchema<T>) {
     this.middlewares.push((req: NextRequest, handler: any, ...args: any[]) =>
-      withValidation(req, schema, (r: NextRequest, validatedBody: T) =>
-        handler(r, ...args, validatedBody)
-      )
+      withValidation(req, schema, (r: NextRequest, validatedBody: T) => {
+        return handler(r, ...args, validatedBody)
+      })
     )
     return this
   }
@@ -42,18 +46,19 @@ export class ApiHandler {
 
   // Execute with error handling
   handle(handler: (request: NextRequest, ...args: any[]) => Promise<NextResponse>) {
-    return withErrorHandling(async (request: NextRequest, ...args: any[]) => {
-      let currentHandler = handler
+    return withErrorHandling(async (request: NextRequest) => {
+      let finalHandler = handler
+
 
       // Apply middleware in reverse order (last added, first applied)
       for (let i = this.middlewares.length - 1; i >= 0; i--) {
         const middleware = this.middlewares[i]
-        const nextHandler = currentHandler
-        currentHandler = (req: NextRequest, ...middlewareArgs: any[]) =>
+        const nextHandler = finalHandler
+        finalHandler = (req: NextRequest, ...middlewareArgs: any[]) =>
           middleware(req, nextHandler, ...middlewareArgs)
       }
 
-      return await currentHandler(request, ...args)
+      return await finalHandler(request)
     })
   }
 }

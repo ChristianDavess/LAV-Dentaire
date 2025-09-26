@@ -180,10 +180,16 @@ export const duplicateCheckSchema = z.object({
 export const appointmentSchema = z.object({
   patient_id: z.string().uuid('Invalid patient ID'),
   appointment_date: dateField('Appointment date'),
-  appointment_time: z.string().min(1, 'Time is required'),
+  appointment_time: z.string().regex(/^\d{2}:\d{2}:\d{2}$/, 'Time must be in HH:MM:SS format'),
   duration_minutes: z.number().min(15, 'Minimum 15 minutes').max(480, 'Maximum 8 hours'),
-  reason: z.string().optional(),
-  notes: z.string().optional(),
+  reason: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? undefined : val),
+    z.string().max(500).optional()
+  ),
+  notes: z.preprocess(
+    (val) => (val === '' || val === null || val === undefined ? undefined : val),
+    z.string().max(1000).optional()
+  ),
 })
 
 // Procedure schemas

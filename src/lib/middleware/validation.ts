@@ -12,7 +12,14 @@ export async function withValidation<T>(
     const body = await request.json()
     const validatedData = schema.parse(body)
 
-    return await handler(request, validatedData)
+    // Create a new request with the validated data attached to avoid consuming the body multiple times
+    const newRequest = new NextRequest(request.url, {
+      method: request.method,
+      headers: request.headers,
+      body: JSON.stringify(validatedData)
+    })
+
+    return await handler(newRequest, validatedData)
   } catch (error) {
     if (error instanceof ZodError) {
       return NextResponse.json(

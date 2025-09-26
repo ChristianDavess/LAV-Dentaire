@@ -96,9 +96,9 @@ export default function MonthView({
           <div className="flex items-center justify-between mb-2">
             <span
               className={`
-                text-sm font-medium
+                text-sm font-semibold
                 ${isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'}
-                ${isDateToday ? 'text-primary font-semibold' : ''}
+                ${isDateToday ? 'text-primary' : ''}
               `}
             >
               {format(date, 'd')}
@@ -133,7 +133,7 @@ export default function MonthView({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div className="text-center cursor-pointer">
-                      <div className="text-lg font-semibold text-primary">
+                      <div className="text-base font-semibold text-primary">
                         {dayAppointments.length}
                       </div>
                       <div className="text-xs text-muted-foreground">
@@ -143,7 +143,7 @@ export default function MonthView({
                   </TooltipTrigger>
                   <TooltipContent>
                     <div className="space-y-1">
-                      <p className="font-medium">
+                      <p className="font-semibold">
                         {dayAppointments.length} appointment{dayAppointments.length !== 1 ? 's' : ''} on {format(date, 'MMM dd')}
                       </p>
                       {dayAppointments.map((appointment) => (
@@ -171,7 +171,7 @@ export default function MonthView({
           {weekDays.map((day) => (
             <div
               key={day}
-              className="h-8 flex items-center justify-center font-medium text-sm text-muted-foreground"
+              className="h-8 flex items-center justify-center font-semibold text-sm text-muted-foreground"
             >
               {day}
             </div>

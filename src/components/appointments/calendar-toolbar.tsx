@@ -96,7 +96,7 @@ export default function CalendarToolbar({
   }
 
   return (
-    <div className={`flex items-center justify-between gap-4 ${className}`}>
+    <div className={`flex items-center justify-between gap-6 ${className}`}>
       {/* Left side - Navigation */}
       <div className="flex items-center gap-2">
         <Button
@@ -133,7 +133,7 @@ export default function CalendarToolbar({
             <Button
               variant="outline"
               size="sm"
-              className="h-8 gap-2 font-medium"
+              className="h-8 gap-2 font-semibold"
             >
               <CalendarIcon className="h-4 w-4" />
               {getDateRangeText()}
@@ -153,7 +153,7 @@ export default function CalendarToolbar({
       {/* Center - Appointment Count Badge */}
       {appointmentCount > 0 && (
         <Badge variant="secondary" className="gap-1">
-          <span className="text-xs font-medium">
+          <span className="text-xs font-semibold">
             {appointmentCount} appointment{appointmentCount !== 1 ? 's' : ''}
           </span>
         </Badge>

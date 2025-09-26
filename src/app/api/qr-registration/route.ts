@@ -4,6 +4,7 @@ import { createApiHandler, createSuccessResponse, ApiErrorClass } from '@/lib/mi
 import { patientSchema } from '@/lib/validations'
 import { z } from 'zod'
 import { v4 as uuidv4 } from 'uuid'
+import { getQRBaseUrl } from '@/lib/utils/url'
 
 // QR Token generation schema (for query parameters - strings need to be coerced)
 const generateTokenSchema = z.object({
@@ -18,6 +19,7 @@ const qrRegistrationSchema = z.object({
   token: z.string().uuid(),
   patient_data: patientSchema
 })
+
 
 // GET /api/qr-registration - Generate QR registration token
 export const GET = createApiHandler()
@@ -61,7 +63,7 @@ export const GET = createApiHandler()
       }
 
       // Generate registration URL
-      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+      const baseUrl = getQRBaseUrl()
       const registrationUrl = `${baseUrl}/patient-registration/${token}`
 
       return createSuccessResponse({

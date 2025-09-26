@@ -20,17 +20,17 @@ import { format } from 'date-fns'
 import { TreatmentWithDetails, Patient, Appointment, Procedure, TreatmentProcedure } from '@/types/database'
 
 const treatmentSchema = z.object({
-  patient_id: z.string().min(1, 'Please select a patient'),
-  appointment_id: z.string().optional(),
-  treatment_date: z.string().min(1, 'Please select a date'),
-  payment_status: z.enum(['pending', 'partial', 'paid'], 'Please select a payment status').default('pending'),
-  notes: z.string().optional(),
+  patient_id: z.string().uuid('Please select a valid patient'),
+  appointment_id: z.string().uuid().optional(),
+  treatment_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Please select a valid date'),
+  payment_status: z.enum(['pending', 'partial', 'paid']).default('pending'),
+  notes: z.string().max(1000).optional().or(z.literal('')),
   procedures: z.array(z.object({
-    procedure_id: z.string(),
-    quantity: z.number().min(1),
-    cost_per_unit: z.number().min(0),
-    tooth_number: z.string().optional(),
-    notes: z.string().optional()
+    procedure_id: z.string().uuid('Invalid procedure ID'),
+    quantity: z.number().min(1, 'Quantity must be at least 1'),
+    cost_per_unit: z.number().min(0, 'Cost must be positive'),
+    tooth_number: z.string().optional().or(z.literal('')),
+    notes: z.string().optional().or(z.literal(''))
   })).min(1, 'At least one procedure is required')
 })
 

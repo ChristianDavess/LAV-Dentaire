@@ -32,6 +32,7 @@ import {
   Clock
 } from 'lucide-react'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { EditPatientForm } from '@/components/forms/edit-patient-form'
 import { MedicalHistorySection } from '@/components/forms/medical-history-section'
 
@@ -67,6 +68,7 @@ const formatGender = (gender: string | null | undefined): string => {
 export function PatientProfileView({ patient, trigger, onPatientUpdate }: PatientProfileViewProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [currentPatient, setCurrentPatient] = useState(patient)
+  const router = useRouter()
 
   const handlePatientUpdate = (updatedPatient: any) => {
     setCurrentPatient(updatedPatient)
@@ -122,6 +124,8 @@ export function PatientProfileView({ patient, trigger, onPatientUpdate }: Patien
   const [statsLoading, setStatsLoading] = useState(true)
 
   const fetchPatientStats = useCallback(async () => {
+    if (!currentPatient?.id) return
+
     try {
       setStatsLoading(true)
       const response = await fetch(`/api/patients/${currentPatient.id}/stats`)
@@ -140,20 +144,25 @@ export function PatientProfileView({ patient, trigger, onPatientUpdate }: Patien
     } finally {
       setStatsLoading(false)
     }
-  }, [currentPatient.id])
+  }, [currentPatient?.id])
 
   // Fetch patient statistics when dialog opens
   useEffect(() => {
     if (isOpen) {
       fetchPatientStats()
     }
-  }, [isOpen, currentPatient.id, fetchPatientStats])
+  }, [isOpen, currentPatient?.id, fetchPatientStats])
 
   const defaultTrigger = (
     <Button variant="ghost" size="icon" className="h-8 w-8">
       <Eye className="h-4 w-4" />
     </Button>
   )
+
+  // Early return if no patient data
+  if (!currentPatient) {
+    return null
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -381,7 +390,19 @@ export function PatientProfileView({ patient, trigger, onPatientUpdate }: Patien
                     </div>
                     Treatment History
                   </div>
-                  <Button size="sm" className="hover:scale-[1.02] transition-all duration-300">
+                  <Button
+                    size="sm"
+                    className="hover:scale-[1.02] transition-all duration-300"
+                    onClick={() => {
+                      // Navigate to treatments page with patient pre-selected
+                      const searchParams = new URLSearchParams({
+                        patient_id: currentPatient.id,
+                        action: 'new'
+                      })
+                      router.push(`/treatments?${searchParams.toString()}`)
+                      setIsOpen(false) // Close the dialog
+                    }}
+                  >
                     <FileText className="mr-2 h-4 w-4" />
                     New Treatment
                   </Button>
@@ -420,7 +441,19 @@ export function PatientProfileView({ patient, trigger, onPatientUpdate }: Patien
                     </div>
                     Appointment History
                   </div>
-                  <Button size="sm" className="hover:scale-[1.02] transition-all duration-300">
+                  <Button
+                    size="sm"
+                    className="hover:scale-[1.02] transition-all duration-300"
+                    onClick={() => {
+                      // Navigate to appointments page with patient pre-selected
+                      const searchParams = new URLSearchParams({
+                        patient_id: currentPatient.id,
+                        action: 'new'
+                      })
+                      router.push(`/appointments?${searchParams.toString()}`)
+                      setIsOpen(false) // Close the dialog
+                    }}
+                  >
                     <Calendar className="mr-2 h-4 w-4" />
                     Book Appointment
                   </Button>
