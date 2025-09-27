@@ -1,5 +1,0 @@
-export { default as TreatmentForm } from './treatment-form'
-export { default as TreatmentList } from './treatment-list'
-export { default as TreatmentDetails } from './treatment-details'
-export { default as TreatmentInvoice } from './treatment-invoice'
-export { default as ProcedureSelector } from './procedure-selector'
